@@ -1,16 +1,30 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
+
 class ArrayElement(ABC):
     """Base class for array elements."""
-
+    
     @property
     @abstractmethod
     def output_size(self):
-        """Retrieves the output size of this array element.
-        
+        """Retrieve the output size of each array element.
+
         For scalar sensors, the output size is one. For vector sensors, the
         output size is greater than one.
+
+ diagnostics.pydocstyle       Scalar sensor
+            Detects the input parameter only based on its magnitude.
+            The answer for the sensor is a function of magnitude of some
+            input parameter. Not affected by the direction of input parameters.
+            Example: temperature, gas, strain, color and smoke sensor.
+      vs.setup({vs.hoks.pylsp})
+
+        Vector sensor
+            The response of the sensor depends on the magnitude of the
+            direction and orientation of input parameter.
+            Example: Accelerometer, gyroscope, magnetic field and motion
+            detector sensors.
         """
         raise NotImplementedError()
 
@@ -32,34 +46,35 @@ class ArrayElement(ABC):
         raise NotImplementedError()
 
     def calc_spatial_response(self, r, az, el, polarization=None):
-        """Calculates the spatial response of for given sources configurations.
+        """Calculate the spatial response of for given sources configurations.
 
         Args:
-            r (float or ~numpy.ndarray): A single range value or an array of
-                range values. Must have the same shape as ``az`` and ``el``.
-            az (float or ~numpy.ndarray): A single azimuth angle or an array of
-                azimuth angles. Must have the same shape as ``az`` and ``el``.
-            el (float or ~numpy.ndarray): A single elevation angle or an array
-                of elevation angles. Must have the same shape as ``az`` and
-                ``el``.
-            polarization (~numpy.ndarray or None): Polarization information.
-                Suppose ``r``, ``az``, ``el`` share the same shape
+            r (float| ~numpy.ndarray): A single range value or an array of
+                range values. ``r``, ``az`` and ``el`` must have the same shape.
+            az (float| ~numpy.ndarray): A single azimuth angle or an array of
+                azimuth angles.
+            el (float| ~numpy.ndarray): A single elevation angle or an array
+                of elevation angles.
+            polarization (~numpy.ndarray, default None): Polarization information. 
+                Suppose ``r``, ``az``, ``el`` share the same shape 
                 ``(d1, d2, ..., dn)``. Then ``polarization`` should have a shape
                 of ``(d1, d2, ..., dn, l)``, where ``l`` is the number of
-                polarization parameters for each source. Default value is
-                ``None``.
+                polarization parameters for each source. 
+                Default value is ``None``.
 
         Returns:
             ~numpy.ndarray: A spatial response tensor. For a scalar element,
-            the shape should be the same as that of ``r``, ``az``, or ``el``.
-            For a vector element (``output_size > 1``), the shape is given by
-            ``(l, d1, d2, ..., dn)``, where ``l`` is equal to ``output_size``
-            and ``(d1, d2, ..., dn)`` is the shape of ``r``, ``az``, or ``el``.
+                the shape should be the same as that of ``r``, ``az``, or ``el``.
+                For a vector element (``output_size > 1``), the shape is given
+                by ``(l, d1, d2, ..., dn)``, where ``l`` is equal to
+                ``output_size`` and ``(d1, d2, ..., dn)`` is the shape of ``r``,
+                ``az``, or ``el``.
         """
         # Validate inputs.
         input_shape = np.shape(r)
         if np.shape(az) != input_shape or np.shape(el) != input_shape:
             raise ValueError('r, az, and el must share the same shape.')
+
         if polarization is not None:
             if not self.is_polarized:
                 raise ValueError(
@@ -73,6 +88,7 @@ class ArrayElement(ABC):
                     'r, az, or el. Expecting {0}. Got {1}.'
                     .format(expected_p_shape, polarization.shape)
                 )
+
         # Call the actual implementation.
         return self._calc_spatial_response(r, az, el, polarization)
     
@@ -85,7 +101,10 @@ class ArrayElement(ABC):
         raise NotImplementedError()
 
 class IsotropicScalarSensor(ArrayElement):
-    """Creates an isotropic scalar array element."""
+    """Creates an isotropic scalar array element.
+
+    Isotropic scalar sensors is used in DOA estimation in most case
+    """
 
     @property
     def output_size(self):

@@ -78,15 +78,20 @@ class ArrayDesign:
         if locations.ndim > 2:
             raise ValueError('Expecting a 1D vector or a 2D matrix.')
         if locations.ndim == 1:
+            # Reshape locations into an array with a shape of m x 1
             locations = locations.reshape((-1, 1))
         elif locations.shape[1] > 3:
             raise ValueError('Array can only be 1D, 2D or 3D.')
-        self._locations = locations
+
+        self._locations = locations  # array elements location
         self._name = name
         self._element = element
+
         # Validate and add perturbations
         self._perturbations = {}
-        self._add_perturbation_from_list(self._parse_input_perturbations(perturbations))
+        self._add_perturbation_from_list(
+            self._parse_input_perturbations(perturbations)
+        )
     
     @property
     def name(self):
@@ -130,6 +135,7 @@ class ArrayDesign:
         """
         locations = self._locations
         for p in self._perturbations.values():
+            # Add location error to array location
             locations = p.perturb_sensor_locations(locations)
         return locations
 
@@ -160,7 +166,9 @@ class ArrayDesign:
     
     @property
     def actual_ndim(self):
-        """Retrieves the number of dimensions of the array, considering location errors."""
+        """Retrieves the number of dimensions of the array, considering location
+        errors.
+        """
         return self.actual_element_locations.shape[1]
     
     def has_perturbation(self, ptype):
@@ -194,6 +202,7 @@ class ArrayDesign:
             applicable, msg = p.is_applicable_to(self)
             if not applicable:
                 raise RuntimeError(msg)
+
             p_class = p.__class__
             if p_class in self._perturbations and raise_on_override:
                 raise RuntimeError(
@@ -201,9 +210,31 @@ class ArrayDesign:
                     'Attempting to add another perturbation of the type {0}.'
                     .format(p_class.__name__)
                 )
+            # Add instance of `ArrayPerturbations` to `_perturbations`
             self._perturbations[p_class] = p
     
     def _parse_input_perturbations(self, perturbations):
+        """Parse `perturbations` to a list of instances of perturbations class
+        derived from base class
+        :class:`~doatools.model.perturbations.ArrayPerturbation.`.
+
+        Args:
+            perturbations (list| dict): `perturbations` should be a list of
+                perturbations instances, or a dict of the following form:
+                ```
+                {
+                     'location_errors': (error_array, bool),
+                     'gain_errors': (error_array, bool),
+                     'phase_errors': (error_array, bool),
+                     'mutual_coupling': (error_array, bool),
+                }
+                ```
+
+        Returns:
+            list: a list consists of instances of perturbations class derived 
+                from base class `ArrayPerturbation`.
+
+        """
         if isinstance(perturbations, dict):
             factories = {
                 'location_errors': (lambda p, k: LocationErrors(p, k)),
@@ -211,7 +242,11 @@ class ArrayDesign:
                 'phase_errors': (lambda p, k: PhaseErrors(p, k)),
                 'mutual_coupling': (lambda p, k: MutualCoupling(p, k))
             }
-            perturbations = [factories[k](v[0], v[1]) for k, v in perturbations.items()]
+            # Transfer perturbations to a list of array error classes derived 
+            # from `ArrayPerturbation`
+            perturbations = [
+                factories[k](v[0], v[1]) for k, v in perturbations.items()
+            ]
         return perturbations
         
     def get_perturbed_copy(self, perturbations, new_name=None):
@@ -252,6 +287,7 @@ class ArrayDesign:
         # Merge perturbation parameters.
         new_perturbations = self._parse_input_perturbations(perturbations)
         array._perturbations = self._perturbations.copy()
+        # Using new perturbations replace the existing ones
         array._add_perturbation_from_list(new_perturbations, False)
         return array
 
@@ -271,7 +307,7 @@ class ArrayDesign:
         if new_name is None:
             new_name = self._name
         array = copy.copy(self)
-        array._perturbations = {}
+        array._perturbations = {}  # get the copy without perturbations
         array._name = new_name
         return array
 
@@ -414,7 +450,8 @@ class ArrayDesign:
         for p in perturb_list:
             actual_locations = p.perturb_sensor_locations(actual_locations)
         # Compute the steering matrix
-        T = sources.phase_delay_matrix(actual_locations, wavelength, compute_derivatives)
+        T = sources.phase_delay_matrix(actual_locations, wavelength,
+                                       compute_derivatives)
         if compute_derivatives:
             A = np.exp(1j * T[0])
             DA = [A * (1j * X) for X in T[1:]]
@@ -550,6 +587,9 @@ class UniformLinearArray(GridBasedArrayDesign):
             name = 'ULA ' + str(n)
         super().__init__(np.arange(n).reshape((-1, 1)), d0, name, **kwargs)
 
+
+## without reviews
+
 class NestedArray(GridBasedArrayDesign):
     """Creates a 1D nested array.
 
@@ -684,7 +724,8 @@ class MinimumRedundancyLinearArray(GridBasedArrayDesign):
             raise ValueError('The MRLA presets only support up to 20 elements.')
         if name is None:
             name = 'MRLA {0}'.format(n)
-        super().__init__(np.array(_MRLA_PRESETS[n - 1])[:, np.newaxis], d0, name, **kwargs)
+        super().__init__(np.array(_MRLA_PRESETS[n - 1])[:, np.newaxis],
+                        d0, name, **kwargs)
         
 class UniformCircularArray(ArrayDesign):
     """Creates a uniform circular array (UCA).

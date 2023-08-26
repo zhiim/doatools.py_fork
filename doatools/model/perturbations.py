@@ -1,8 +1,8 @@
-import warnings
 import numpy as np
 
 class ArrayPerturbation:
-    """Creates an array perturbation.
+    """Creates an array perturbation class as base class for all type of
+    array perturbation.
 
     In practice, sensor arrays are not perfectly calibrated and various
     array imperfections exist. These imperfections/perturbations are generally
@@ -34,7 +34,7 @@ class ArrayPerturbation:
 
         Args:
             array (~doatools.model.arrays.ArrayDesign): Array design.
-        
+
         Returns:
             tuple: A two-element tuple of the format ``(bool, str)``. The first
             element is a boolean indicating whether this perturbation is
@@ -44,14 +44,18 @@ class ArrayPerturbation:
         return True
 
     def perturb_sensor_locations(self, locations):
-        """Perturbs the given sensor locations.
+        """Perturbs the given sensor locations. This function should be
+        inplemented in array location error.
 
         Args:
             locations (~numpy.ndarray): A matrix containing the locations of
                 array elements/sensors, where the :math:`i`-th row consists of
                 the Cartesian coordinates of the :math:`i`-th array
                 element/sensor.
-        
+
+        Returns:
+            A perturbed location matrix
+
         Notes:
             The number of dimensions of the sensor locations and number of
             dimensions of the perturbations do not need to match. It is
@@ -60,7 +64,9 @@ class ArrayPerturbation:
         return locations
 
     def perturb_steering_matrix(self, A, DA):
-        r"""Perturbs the given steering matrix (and derivative matrices).
+        r"""Perturbs the given steering matrix (and derivative matrices). This
+        function should be inplemented in sensor gain error, phase error and
+        mutual coupling error.
 
         Given the steering matrix
 
@@ -143,14 +149,21 @@ class LocationErrors(ArrayPerturbation):
 
     def is_applicable_to(self, array):
         m = self._params.shape[0]
+        # Array size (number of sensors in array) should be equal with size of 
+        # location error matrix
         if array.size != m:
+            # String in return describes why the location error matrix not 
+            # appliable with this array
             return False, 'Expecting an array of size {0}'.format(m)
         else:
             return True, ''
 
     def perturb_sensor_locations(self, locations):
+        # The passed in parameter `locations` is a 2D matrix.
+        # For 1D, 2D and 3D antenna array, locations.shape[1] will be 1, 2 and 3.
         array_dim = locations.shape[1]
         loc_err_dim = self._params.shape[1]
+
         if loc_err_dim <= array_dim:
             # It is possible that the location errors only exist along the
             # first one or two axis.
@@ -176,7 +189,8 @@ class GainErrors(ArrayPerturbation):
     """
     def __init__(self, gain_errors, known=False):
         if not isinstance(gain_errors, np.ndarray):
-            gain_erros = np.array(gain_errors)
+            gain_errors = np.array(gain_errors)
+        # `gain_errors` should be an 1d vector
         if gain_errors.ndim != 1:
             raise ValueError('Expecting a vector.')
         super().__init__(gain_errors, known)
@@ -184,9 +198,13 @@ class GainErrors(ArrayPerturbation):
     def is_applicable_to(self, array):
         if not array.element.is_scalar:
             return False, 'The array element must have a scalar output.'
+
         m = self._params.shape[0]
+        # Gain error is applied to every element in antenna array, so `gain_erros` 
+        # size should be equal with array size.
         if array.size != m:
             return False, 'Expecting an array of size {0}'.format(m)
+
         else:
             return True, ''
 
@@ -232,7 +250,7 @@ class PhaseErrors(ArrayPerturbation):
     """
     def __init__(self, phase_errors, known=False):
         if not isinstance(phase_errors, np.ndarray):
-            gain_erros = np.array(phase_errors)
+            phase_errors = np.array(phase_errors)
         if phase_errors.ndim != 1:
             raise ValueError('Expecting a vector.')
         super().__init__(phase_errors, known)
@@ -290,6 +308,7 @@ class MutualCoupling(ArrayPerturbation):
     def __init__(self, C, known=False):
         if not isinstance(C, np.ndarray):
             C = np.array(C)
+        # Mutual coupling matrix should be a square matrix
         if C.ndim != 2 and C.shape[0] != C.shape[1]:
             raise ValueError('Expecting a square matrix.')
         super().__init__(C, known)

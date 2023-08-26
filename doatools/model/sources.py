@@ -1,14 +1,14 @@
-from enum import Enum
 from abc import ABC, abstractmethod
 import copy
-import warnings
 import numpy as np
 from scipy.spatial.distance import cdist
 from ..utils.conversion import convert_angles, cart2spherical
 
 def _validate_sensor_location_ndim(sensor_locations):
     if sensor_locations.shape[1] < 1 or sensor_locations.shape[1] > 3:
-        raise ValueError('Sensor locations can only consists of 1D, 2D or 3D coordinates.')
+        raise ValueError(
+            'Sensor locations can only consists of 1D, 2D or 3D coordinates.'
+        )
 
 class SourcePlacement(ABC):
     """Represents the placement of several sources.
@@ -107,7 +107,11 @@ class SourcePlacement(ABC):
 
     @abstractmethod
     def calc_spherical_coords(self, ref_locations):
-        """Calculates the spherical coordinates relative to reference locations.
+        """Calculates the spherical coordinates relative to reference locations
+        (reference locations are location of antenna elements in array).
+
+        Calculate the distance, elevation angle and azimuth angle of all sources
+        relative to all antenna elements in array.
 
         Args:
             ref_locations (~numpy.ndarray): An M x D matrix storing the
@@ -127,8 +131,9 @@ class SourcePlacement(ABC):
     def phase_delay_matrix(self, sensor_locations, wavelength, derivatives=False):
         """Computes the phase delay matrix.
 
-        The phase delay matrix D is an m x k matrix, where D[i,j] is the
-        relative phase difference between the i-th sensor and the j-th source
+        The phase delay matrix D is an m x k matrix (m is the number of antennas,
+        k is the number of sources), where D[i,j] is the relative phase
+        difference between the i-th sensor and the j-th source
         (usually using the first sensor as the reference). By convention,
         a positive value means that the corresponding signal arrives earlier
         than the referenced one.
@@ -172,12 +177,14 @@ class FarField1DSourcePlacement(SourcePlacement):
         ---------+---------> x
 
     Args:
-        locations: A list or 1D numpy array representing the source locations.
+        locations: A list or 1D numpy array representing the source locations
+        (for 1D far-field DOA, locations will be the azimuth angle of sources).
         unit (str): Can be ``'rad'``, ``'deg'`` or ``'sin'``. ``'sin'`` is a
             special unit where sine value of the broadside angle is used instead
             of the broadside angle itself. Default value is ``'rad'``.
     """
 
+    # valid ranges of source incidence angle in defferent units
     VALID_RANGES = {
         'rad': (-np.pi/2, np.pi/2),
         'deg': (-90.0, 90.0),
@@ -194,6 +201,7 @@ class FarField1DSourcePlacement(SourcePlacement):
                 'Unit can only be one of the following: {0}.'
                 .format(', '.join(FarField1DSourcePlacement.VALID_RANGES.keys()))
             )
+        # lowwer bound and upper bound of valid range
         lb, ub = FarField1DSourcePlacement.VALID_RANGES[unit]
         if np.any(locations < lb) or np.any(locations > ub):
             raise ValueError(
@@ -204,9 +212,13 @@ class FarField1DSourcePlacement(SourcePlacement):
 
     @staticmethod
     def from_z(z, wavelength, d0, unit='rad'):
-        """Creates a far-field 1D source placement from complex roots.
+        """Creates a far-field 1D source placement(angle) from complex roots.
         
-        Used in rooting based DOA estimators such as root-MUSIC and ESPRIT.
+        Get the corresponding angle of complex roots. Used to get incidence
+        angle in rooting based DOA estimators such as root-MUSIC and ESPRIT.
+        e.g. for root-music algorithmn, we get some complex roots by resolving a
+        specific equation, and get incidence angle from calculate arg value
+        of those complex roots.
 
         Args:
             z: A ndarray of complex roots.
@@ -220,11 +232,12 @@ class FarField1DSourcePlacement(SourcePlacement):
             :class:`~doatools.model.sources.FarField1DSourcePlacement`.
         """
         c = 2 * np.pi * d0 / wavelength
-        sin_vals = np.angle(z) / c
+        # in root-MUSIC algorithm, sin(theta) = arg(z)/(2*pi*d0/wavelength) 
+        sin_vals = np.angle(z) / c  # sin value of incidence angle
         if unit == 'sin':
             sin_vals.sort()
             return FarField1DSourcePlacement(sin_vals, 'sin')
-        locations = np.arcsin(sin_vals)
+        locations = np.arcsin(sin_vals)  # angle of incidence in radians
         locations.sort()        
         if unit == 'rad':
             return FarField1DSourcePlacement(locations)
@@ -246,25 +259,45 @@ class FarField1DSourcePlacement(SourcePlacement):
         )
 
     def calc_spherical_coords(self, ref_locations):
-        m = ref_locations.shape[0]
-        k = self.size
+        m = ref_locations.shape[0]  # number of reference locations
+        k = self.size  # number of sources
+        # all sources with a distance of inf for far-field source
         r = np.full((m, k), np.inf)
+        # all sources with a zero elevation angle for 1D DOA
         el = np.zeros((m, k))
         # Broadside angles are defined relative to the y-axis
         az = np.pi/2 - convert_angles(self.locations, self.units[0], 'rad')
+        # for 1D DOA, all sources hava the same azimuth angle for one specific
+        # antenna element
         az = np.tile(az, (m, 1))
         return r, az, el
 
-    def phase_delay_matrix(self, sensor_locations, wavelength, derivatives=False):
+    def phase_delay_matrix(self, sensor_locations, wavelength,
+                           derivatives=False):
         """Computes the phase delay matrix for 1D far-field sources."""
         _validate_sensor_location_ndim(sensor_locations)
         
         if self._units[0] == 'sin':
-            return self._phase_delay_matrix_sin(sensor_locations, wavelength, derivatives)
+            return self._phase_delay_matrix_sin(sensor_locations, wavelength,
+                                                derivatives)
         else:
-            return self._phase_delay_matrix_rad(sensor_locations, wavelength, derivatives)
+            return self._phase_delay_matrix_rad(sensor_locations, wavelength,
+                                                derivatives)
         
-    def _phase_delay_matrix_rad(self, sensor_locations, wavelength, derivatives=False):
+    def _phase_delay_matrix_rad(self, sensor_locations, wavelength,
+                                derivatives=False):
+        """Compute the phase delay matrix, each value in the matrix is the delay
+        value in radians.
+
+        Args:
+            sensor_locations (np.array): location ofr sensors
+            wavelength (float): wavelength of incident wave
+            derivatives (bool, optional): compute derivatives of phase delay
+                matrix when set to True. Defaults to False.
+
+        Returns:
+            np.array: the phase delay matrix
+        """
         # Unit can only be 'rad' or 'deg'.
         # Unify to radians.
         if self._units[0] == 'deg':
