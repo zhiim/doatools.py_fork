@@ -4,11 +4,11 @@ from scipy.ndimage import maximum_filter
 
 def vec(x):
     """Vectorizes a matrix by stacking the columns.
-    
+
     NumPy arrays use row major ordering, while MATLAB uses column major
     ordering. Therefore in NumPy `reshape((-1, 1))` stacks the rows instead of
     columns.
-    
+
     This function is just a shorthand for `reshape((-1, 1), order='F')`.
 
     Args:
@@ -18,7 +18,7 @@ def vec(x):
 
 def abs_squared(x):
     """Computes Re(x)^2 + Im(x)^2.
-    
+
     Args:
         x: An complex ndarray.
     """
@@ -30,7 +30,8 @@ def khatri_rao(a, b):
     n1, k1 = a.shape
     n2, k2 = b.shape
     if k1 != k2:
-        raise ValueError('Two input matrices must have the same number of columns.')
+        raise ValueError('Two input matrices must have the same number of\
+                         columns.')
     c = np.zeros((n1 * n2, k1), dtype=np.result_type(a.dtype, b.dtype))
     for i in range(k1):
         c[:,i] = np.outer(a[:,i], b[:,i]).flatten()
@@ -38,7 +39,7 @@ def khatri_rao(a, b):
 
 def projm(A, use_pinv=False):
     """Computes the projection matrix of the input matrix.
-    
+
     Given a full column rank matrix A, the projection matrix of A is given by
         A (A^H A)^{-1} A^H
 
@@ -59,12 +60,12 @@ def cartesian(*xi):
     """Evaluates the Cartesian product among the input vectors.
 
     For instance, if the inputs are [1, 2] and [3, 4, 5], the result will be
-    
+
     [[1, 3], [1, 4], [1, 5], [2, 3], [2, 4], [2, 5]]
 
     Args:
         *xi: 1D arrays.
-    
+
     Returns:
         prod: An ndarray array containing the Cartesian product.
     """
@@ -76,14 +77,20 @@ def randcn(shape):
 
     Args:
         shape (tuple): Shape of the output.
-    
+
     Returns:
         ~numpy.ndarray: A complex :class:`~numpy.ndarray` containing the
         samples.
     """
-    x = 1j * np.random.randn(*shape)
-    x += np.random.randn(*shape)
-    x *= np.sqrt(0.5)
+    # generate standard normal distribution samples with a newer style
+    rng = np.random.default_rng()
+    x = 1j * rng.standard_normal(*shape)
+    x += rng.standard_normal(*shape)
+
+    # x = 1j * np.random.randn(*shape)
+    # x += np.random.randn(*shape)
+
+    x *= np.sqrt(0.5)  # variance of the complex sample should remain at 1
     return x
 
 def unique_rows(x, atol=0.0, rtol=1e-8, return_index=False, sort=False):

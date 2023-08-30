@@ -7,12 +7,12 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
     Let :math:`\mathbf{A}` be the steering matrix, :math:`\mathbf{s}(t)` be the
     source signal vector, and :math:`\mathbf{n}(t)` be the noise signal matrix.
     Then the snapshots received at the array is given by
-    
+
     .. math::
 
         \mathbf{y}(t) = \mathbf{A}\mathbf{s}(t) + \mathbf{n}(t),
         t = 1, 2, ..., N,
-        
+
     where :math:`N` denotes the number of snapshots.
 
     Args:
@@ -38,19 +38,20 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
           matrix, which is computed by
 
           .. math::
-              \mathbf{R} = \frac{1}{N} \mathbf{Y} \mathbf{Y}^H. 
+              \mathbf{R} = \frac{1}{N} \mathbf{Y} \mathbf{Y}^H.
 
     References:
         [1] H. L. Van Trees, Optimum array processing. New York: Wiley, 2002.
     """
-    A = array.steering_matrix(sources, wavelength)
-    S = source_signal.emit(n_snapshots)
-    Y = A @ S
+    matrix_a = array.steering_matrix(sources, wavelength)  # steering matrix
+    matrix_s = source_signal.emit(n_snapshots)  # sources
+    matrix_y = matrix_a @ matrix_s
     if noise_signal is not None:
-        N = noise_signal.emit(n_snapshots)
-        Y += N
+        matrix_n = noise_signal.emit(n_snapshots)  # noise
+        matrix_y += matrix_n
     if return_covariance:
-        R = (Y @ Y.conj().T) / n_snapshots
-        return Y, R
+        # covariance matirx
+        matrix_r = (matrix_y @ matrix_y.conj().T) / n_snapshots
+        return matrix_y, matrix_r
     else:
-        return Y
+        return matrix_y

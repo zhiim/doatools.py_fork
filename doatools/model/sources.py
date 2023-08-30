@@ -12,7 +12,7 @@ def _validate_sensor_location_ndim(sensor_locations):
 
 class SourcePlacement(ABC):
     """Represents the placement of several sources.
-    
+
     This the base abstract class and should not be directly instantiated.
     """
 
@@ -68,18 +68,18 @@ class SourcePlacement(ABC):
     @property
     def locations(self):
         """Retrieves the source locations.
-        
+
         While this property provides read/write access to the underlying ndarray
         storing the source locations. Modifying the underlying ndarray is
         discourage because modified values are not checked for validity.
         """
         return self._locations
-    
+
     @property
     @abstractmethod
     def is_far_field(self):
         """Retrieves whether the source placement is considered far-field.
-        
+
         A far-field source's distance to a sensor array is defined to be
         infinity.
         """
@@ -99,10 +99,11 @@ class SourcePlacement(ABC):
             ((min_1, max_1), ...): A tuple of 2-element tuples of min-max pairs.
         """
         raise NotImplementedError()
-    
+
     @abstractmethod
     def as_unit(self, new_unit):
-        """Creates a copy with the source locations converted to the new unit."""
+        """Creates a copy with the source locations converted to the new
+        unit."""
         raise NotImplementedError()
 
     @abstractmethod
@@ -118,7 +119,7 @@ class SourcePlacement(ABC):
                 Cartesian coordinates (measured in meters), where M is the
                 number of reference locations, and D is the number of dimensions
                 of the coordinates (1, 2, or 3).
-        
+
         Returns:
             tuple: A tuple of three M by K matrices containing the ranges, the
             azimuth angles and the elevation angles, respectively. The (m,k)-th
@@ -128,12 +129,13 @@ class SourcePlacement(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def phase_delay_matrix(self, sensor_locations, wavelength, derivatives=False):
+    def phase_delay_matrix(self,sensor_locations, wavelength,
+                           derivatives=False):
         """Computes the phase delay matrix.
 
-        The phase delay matrix D is an m x k matrix (m is the number of antennas,
-        k is the number of sources), where D[i,j] is the relative phase
-        difference between the i-th sensor and the j-th source
+        The phase delay matrix D is an m x k matrix (m is the number of
+        antennas, k is the number of sources), where D[i,j] is the relative
+        phase difference between the i-th sensor and the j-th source
         (usually using the first sensor as the reference). By convention,
         a positive value means that the corresponding signal arrives earlier
         than the referenced one.
@@ -145,7 +147,7 @@ class SourcePlacement(ABC):
             derivatives: If set to true, also outputs the derivative matrix (or
                 matrices) with respect to the source locations. Default value
                 is False.
-        
+
         Returns:
             * When ``derivatives`` is ``False``, returns the steering matrix.
             * When ``derivatives`` is ``True``, returns both the steering matrix
@@ -168,7 +170,7 @@ class FarField1DSourcePlacement(SourcePlacement):
 
     ::
 
-                 y   
+                 y
                  ^
                  |   /
                  |  /
@@ -199,21 +201,22 @@ class FarField1DSourcePlacement(SourcePlacement):
         if unit not in FarField1DSourcePlacement.VALID_RANGES:
             raise ValueError(
                 'Unit can only be one of the following: {0}.'
-                .format(', '.join(FarField1DSourcePlacement.VALID_RANGES.keys()))
+                .format(', '.join(
+                    FarField1DSourcePlacement.VALID_RANGES.keys()))
             )
         # lowwer bound and upper bound of valid range
         lb, ub = FarField1DSourcePlacement.VALID_RANGES[unit]
         if np.any(locations < lb) or np.any(locations > ub):
             raise ValueError(
-                "When unit is '{0}', source locations must be within [{0}, {1}]."
-                .format_map(unit, lb, ub)
+                "When unit is '{0}', source locations must be within\
+                [{1}, {2}].".format(unit, lb, ub)
             )
         super().__init__(locations, (unit,))
 
     @staticmethod
     def from_z(z, wavelength, d0, unit='rad'):
         """Creates a far-field 1D source placement(angle) from complex roots.
-        
+
         Get the corresponding angle of complex roots. Used to get incidence
         angle in rooting based DOA estimators such as root-MUSIC and ESPRIT.
         e.g. for root-music algorithmn, we get some complex roots by resolving a
@@ -226,19 +229,19 @@ class FarField1DSourcePlacement(SourcePlacement):
             d0 (float): Inter-element spacing of the uniform linear array.
             unit (str): Can be ``'rad'``, ``'deg'`` or ``'sin'``. Default value
                 is ``'rad'``.
-        
+
         Returns:
             An instance of
             :class:`~doatools.model.sources.FarField1DSourcePlacement`.
         """
         c = 2 * np.pi * d0 / wavelength
-        # in root-MUSIC algorithm, sin(theta) = arg(z)/(2*pi*d0/wavelength) 
+        # in root-MUSIC algorithm, sin(theta) = arg(z)/(2*pi*d0/wavelength)
         sin_vals = np.angle(z) / c  # sin value of incidence angle
         if unit == 'sin':
             sin_vals.sort()
             return FarField1DSourcePlacement(sin_vals, 'sin')
         locations = np.arcsin(sin_vals)  # angle of incidence in radians
-        locations.sort()        
+        locations.sort()
         if unit == 'rad':
             return FarField1DSourcePlacement(locations)
         else:
@@ -276,21 +279,22 @@ class FarField1DSourcePlacement(SourcePlacement):
                            derivatives=False):
         """Computes the phase delay matrix for 1D far-field sources."""
         _validate_sensor_location_ndim(sensor_locations)
-        
+
         if self._units[0] == 'sin':
             return self._phase_delay_matrix_sin(sensor_locations, wavelength,
                                                 derivatives)
         else:
             return self._phase_delay_matrix_rad(sensor_locations, wavelength,
                                                 derivatives)
-        
+
     def _phase_delay_matrix_rad(self, sensor_locations, wavelength,
                                 derivatives=False):
         """Compute the phase delay matrix, each value in the matrix is the delay
         value in radians.
 
         Args:
-            sensor_locations (np.array): location ofr sensors
+            sensor_locations (np.array): An m x d (d = 1, 2, 3) matrix stands
+                for location of sensors
             wavelength (float): wavelength of incident wave
             derivatives (bool, optional): compute derivatives of phase delay
                 matrix when set to True. Defaults to False.
@@ -298,25 +302,30 @@ class FarField1DSourcePlacement(SourcePlacement):
         Returns:
             np.array: the phase delay matrix
         """
-        # Unit can only be 'rad' or 'deg'.
+        # Units can only be 'rad' or 'deg'.
         # Unify to radians.
         if self._units[0] == 'deg':
             locations = np.deg2rad(self._locations)
         else:
             locations = self._locations
-        
+
         locations = locations[np.newaxis]
         s = 2 * np.pi / wavelength
+        # 信源是1D信源（没有俯仰角），天线阵列不一定是均匀线阵
+        # 如果天线阵元沿x轴分布，此时sensor_locations列数是1
         if sensor_locations.shape[1] == 1:
-            # D[i,k] = sensor_location[i] * sin(doa[k])
+            # D[i,k] = s * sensor_location[i] * sin(doa[k])
             D = s * np.outer(sensor_locations, np.sin(locations))
             if derivatives:
                 DD = s * np.outer(sensor_locations, np.cos(locations))
+        # 如果sensor_locations列数大于1，说明此时天线阵元的位置坐标同时有
+        # x和y和z轴分量
         else:
             # The sources are assumed to be within the xy-plane. The offset
             # along the z-axis of the sensors does not affect the delays.
-            # D[i,k] = sensor_location_x[i] * sin(doa[k])
-            #          + sensor_location_y[i] * cos(doa[k])
+            # 由于信源分布在xy平面，此时阵元的z轴分量不对时延产生影响
+            # D[i,k] = s * (sensor_location_x[i] * sin(doa[k])
+            #          + sensor_location_y[i] * cos(doa[k]))
             D = s * (np.outer(sensor_locations[:, 0], np.sin(locations)) +
                      np.outer(sensor_locations[:, 1], np.cos(locations)))
             if derivatives:
@@ -326,7 +335,20 @@ class FarField1DSourcePlacement(SourcePlacement):
             DD *= np.pi / 180.0 # Do not forget the scaling when unit is 'deg'.
         return (D, DD) if derivatives else D
 
-    def _phase_delay_matrix_sin(self, sensor_locations, wavelength, derivatives=False):
+    def _phase_delay_matrix_sin(self, sensor_locations, wavelength,
+                                derivatives=False):
+        """计算信源的_locations是以sin为单位时的协方差矩阵
+
+        Args:
+            sensor_locations (numpy.array): 阵元的位置，如果列数大于1，说明阵元
+                的位置坐标同时包含y轴或z轴分量
+            wavelength (): 入射信号的波长
+            derivatives (): 是否计算协方差矩阵的微分
+
+        Returns:
+            当derivatives为真的时候，返回一个tuple包含协方差矩阵和它的导数；否则
+            只返回协方差矩阵
+        """
         sin_vals = self._locations
         s = 2 * np.pi / wavelength
         if sensor_locations.shape[1] == 1:
@@ -354,7 +376,7 @@ class FarField1DSourcePlacement(SourcePlacement):
                           np.outer(sensor_locations[:, 1], sin_vals / cos_vals))
         return (D, DD) if derivatives else D
 
-
+# reviewed
 class FarField2DSourcePlacement(SourcePlacement):
     """Creates a far-field 2D source placement.
 

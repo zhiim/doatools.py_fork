@@ -4,7 +4,7 @@ import numpy as np
 
 class ArrayElement(ABC):
     """Base class for array elements."""
-    
+
     @property
     @abstractmethod
     def output_size(self):
@@ -55,16 +55,16 @@ class ArrayElement(ABC):
                 azimuth angles.
             el (float| ~numpy.ndarray): A single elevation angle or an array
                 of elevation angles.
-            polarization (~numpy.ndarray, default None): Polarization information. 
-                Suppose ``r``, ``az``, ``el`` share the same shape 
+            polarization (~numpy.ndarray): Polarization information.
+                Suppose ``r``, ``az``, ``el`` share the same shape
                 ``(d1, d2, ..., dn)``. Then ``polarization`` should have a shape
                 of ``(d1, d2, ..., dn, l)``, where ``l`` is the number of
-                polarization parameters for each source. 
+                polarization parameters for each source.
                 Default value is ``None``.
 
         Returns:
             ~numpy.ndarray: A spatial response tensor. For a scalar element,
-                the shape should be the same as that of ``r``, ``az``, or ``el``.
+                the shape should be the same as that of ``r``, ``az``, or ``el``
                 For a vector element (``output_size > 1``), the shape is given
                 by ``(l, d1, d2, ..., dn)``, where ``l`` is equal to
                 ``output_size`` and ``(d1, d2, ..., dn)`` is the shape of ``r``,
@@ -91,11 +91,11 @@ class ArrayElement(ABC):
 
         # Call the actual implementation.
         return self._calc_spatial_response(r, az, el, polarization)
-    
+
     @abstractmethod
     def _calc_spatial_response(self, r, az, el, polarization):
         """Actual implementation of spatial response calculations.
-        
+
         The inputs are guaranteed to have valid shapes.
         """
         raise NotImplementedError()
@@ -117,7 +117,7 @@ class IsotropicScalarSensor(ArrayElement):
     @property
     def is_polarized(self):
         return False
-    
+
     def _calc_spatial_response(self, r, az, el, polarization):
         if np.isscalar(r):
             return 1.
