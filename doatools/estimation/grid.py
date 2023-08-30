@@ -1,12 +1,13 @@
 
 from abc import ABC, abstractmethod
 import numpy as np
-from ..model.sources import FarField1DSourcePlacement, FarField2DSourcePlacement, NearField2DSourcePlacement
+from ..model.sources import FarField1DSourcePlacement,\
+    FarField2DSourcePlacement, NearField2DSourcePlacement
 from ..utils.math import cartesian
 
 class SearchGrid(ABC):
     """Base class for all search grids. Provides standard implementation.
-    
+
     Args:
         axes: A tuple of 1D ndarrays representing the axes of this search
             grid. The source locations on this search grid will be generated
@@ -51,7 +52,7 @@ class SearchGrid(ABC):
     @property
     def source_placement(self):
         r"""Retrieves the source placement based on this grid.
-        
+
         For a multi-dimensional search grid with shape
         :math:`(d_1, d_2, \ldots, d_n)`, the returned
         :class:`~doatools.model.sources.SourcePlacement` instance will contain

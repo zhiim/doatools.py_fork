@@ -27,7 +27,9 @@ def _build_spectrum_list(sp, grid):
         raise ValueError('Expecting at least on spectrum.')
     for t in sp_list:
         if t[0].shape != grid.shape:
-            raise ValueError('The shape of the spectrum, {0}, does not match the search grid, {1}.'.format(t[0].shape, grid.shape))
+            raise ValueError('The shape of the spectrum, {0},\
+                             does not match the search grid, {1}.'
+                             .format(t[0].shape, grid.shape))
     return sp_list
 
 def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
@@ -46,7 +48,7 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
             3. A dictionary that maps labels to numpy arrays of the same shape.
                This function will draw multiple spectra in the same plot with
                labels.
-        
+
         grid (~doatools.estimation.grid.SearchGrid): The search grid used to
             generate the spectrum/spectra. Its shape must match that of the
             spectrum/spectra.
@@ -92,13 +94,16 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
             plot_containers.append(container_sp)
         else:
             if use_log_scale:
-                plot_containers.append(plt.semilogy(x, y, '-', label=label, color=color))
+                plot_containers.append(plt.semilogy(x, y, '-', label=label,
+                                                    color=color))
             else:
-                plot_containers.append(plt.plot(x, y, '-', label=label, color=color))
+                plot_containers.append(plt.plot(x, y, '-', label=label,
+                                                color=color))
     # Plot estimates
     if estimates is not None:
         if estimates.units != grid.units:
-            raise ValueError('The unit of estimates does not match that of the search grid.')
+            raise ValueError('The unit of estimates does not match that of the\
+                             search grid.')
         x_est = estimates.locations
         y_est = np.ones(x_est.shape)
         container_est = ax.stem(x_est, y_est, '--', markerfmt='x',
@@ -109,7 +114,8 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
     # Plot ground truth
     if ground_truth is not None:
         if ground_truth.units != grid.units:
-            raise ValueError('The unit of ground truth does not match that of the search grid.')
+            raise ValueError('The unit of ground truth does not match that of\
+                             the search grid.')
         x_truth = ground_truth.locations
         y_truth = np.ones(x_truth.shape)
         container_truth = ax.stem(x_truth, y_truth, '--', markerfmt='o',
@@ -156,7 +162,9 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
         is the plot container of the ground truth.
     """
     if sp.shape != grid.shape:
-        raise ValueError('The shape of the spectrum, {0}, does not match the search grid, {1}.'.format(sp.shape, grid.shape))
+        raise ValueError('The shape of the spectrum, {0},\
+                         does not match the search grid, {1}.'
+                         .format(sp.shape, grid.shape))
     # Note that columns -> x, rows -> y by default
     if swap_axes:
         ind_x, ind_y = 1, 0
@@ -185,7 +193,8 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
     ax.set_ylabel(y_label)
     if estimates is not None:
         if estimates.units != grid.units:
-            raise ValueError('The unit of estimates does not match that of the search grid.')
+            raise ValueError('The unit of estimates does not match that of the\
+                             search grid.')
         containers.append(ax.scatter(
             estimates.locations[:, ind_x],
             estimates.locations[:, ind_y],
@@ -196,7 +205,8 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
         has_legend = True
     if ground_truth is not None:
         if ground_truth.units != grid.units:
-            raise ValueError('The unit of ground truth does not match that of the search grid.')
+            raise ValueError('The unit of ground truth does not match that of\
+                             the search grid.')
         containers.append(ax.scatter(
             ground_truth.locations[:, ind_x],
             ground_truth.locations[:, ind_y],
@@ -211,7 +221,7 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
 def plot_spectrum(sp, grid, ax=None, figsize=None, estimates=None,
                   ground_truth=None, use_log_scale=False, **kwargs):
     """Plots the given spectrum/spectra.
-    
+
     Provides a convenient way to plot the given spectrum/spectra. Automatically
     selects the plot function based on input grid's number of dimensions.
 
@@ -233,7 +243,7 @@ def plot_spectrum(sp, grid, ax=None, figsize=None, estimates=None,
         **kwargs: Other compatible options depending on the number of dimensions
             of the input grid. See :meth:`plot_spectrum_1d` and
             :meth:`plot_spectrum_2d` for more details.
-    
+
     Returns:
         tuple: A tuple consists of the following elements:
 

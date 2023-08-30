@@ -83,12 +83,13 @@ def randcn(shape):
         samples.
     """
     # generate standard normal distribution samples with a newer style
-    rng = np.random.default_rng()
-    x = 1j * rng.standard_normal(*shape)
-    x += rng.standard_normal(*shape)
+    # rng = np.random.default_rng()
+    # x = 1j * rng.standard_normal(*shape)
+    # x += rng.standard_normal(*shape)
 
-    # x = 1j * np.random.randn(*shape)
-    # x += np.random.randn(*shape)
+    print(shape)
+    x = 1j * np.random.randn(*shape)
+    x += np.random.randn(*shape)
 
     x *= np.sqrt(0.5)  # variance of the complex sample should remain at 1
     return x
