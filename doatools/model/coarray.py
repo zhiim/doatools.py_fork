@@ -4,7 +4,12 @@ from ..utils.math import unique_rows
 
 def compute_location_differences(locations):
     r"""Computes all locations differences, including duplicates.
-    
+
+    References:
+        [1] P. Pal and P. P. Vaidyanathan, "Nested arrays: A novel approach to
+        array processing with enhanced degrees of freedom," IEEE Transactions on
+        Signal Processing, vol. 58, no. 8, pp. 4167-4181, Aug. 2010.
+
     Suppose ``locations`` is :math:`m \times d`, then the result will be an
     :math:`m^2 \times d` matrix such that ``locations[i] - locations[j]`` is
     stored in the ``(i + j * m)``-th row of the resulting matrix.
@@ -15,6 +20,7 @@ def compute_location_differences(locations):
     Args:
         locations (~numpy.ndarray): An m x d array of sensor locations.
     """
+    # m is the number of elements, d is the number of dimensions
     m, d = locations.shape
     # Use broadcasting to compute pairwise differences.
     D = locations.reshape((1, m, d)) - locations.reshape((m, 1, d))
@@ -46,12 +52,19 @@ class WeightFunction1D:
     def __init__(self, array):
         if array.ndim != 1 or not isinstance(array, GridBasedArrayDesign):
             raise ValueError('Expecting a 1D grid-based array.')
-        self._m = array.size
+        self._m = array.size  # number of elements
         self._mv = None
         self._build_map(array)
 
     def __call__(self, diff):
-        """Evaluates the weight function at the given difference."""
+        """Evaluates the weight function at the given difference.
+
+        Args:
+            diff (float): differences to be evaluated.
+
+        Returns:
+            a int number indicates the weight of given difference.
+        """
         return self.weight_of(diff)
 
     def __len__(self):
@@ -60,7 +73,7 @@ class WeightFunction1D:
 
     def differences(self):
         """Retrieves a 1D array of unique differences in ascending order.
-        
+
         The ordering of elements returned by :meth:`differences` and the
         ordering of elements returned by :meth:`weights` are the same.
         """
@@ -95,8 +108,12 @@ class WeightFunction1D:
             return []
 
     def get_central_ula_size(self, exclude_negative_part=False):
-        r"""Gets the size of the central ULA in the difference coarray.
-        
+        r"""Gets the size of the central ULA in the difference coarray. (Nested
+        array will form a filled differences co-array, but for co-prime array,
+        the differences co-array may has holes.
+        eg. for a differences co-array [-5, -3, -2, -1, 0, 1, 2, 3, 5], the
+        central ula will be [-3, -2, -1, 0, 1, 2, 3])
+
         Args:
             exclude_negative_part (bool): Set to ``True`` to exclude the
                 virtual array elements corresponding to negative differences.
@@ -117,7 +134,7 @@ class WeightFunction1D:
                     \lbrack
                     0, 1, \ldots, M_\mathrm{v}
                     \rbrack d_0
-                
+
                 Default value is ``False``.
         """
         if self._mv is None:
@@ -125,8 +142,8 @@ class WeightFunction1D:
             while mv in self._index_map:
                 mv += 1
             self._mv = mv
-        return self._mv if exclude_negative_part else self._mv * 2 - 1 
-    
+        return self._mv if exclude_negative_part else self._mv * 2 - 1
+
     def get_coarray_selection_matrix(self, exclude_negative_part=False):
         r"""Gets the coarray selection matrix.
 
@@ -147,10 +164,10 @@ class WeightFunction1D:
                 :math:`\lbrack 0, 1, \ldots, M_\mathrm{v} - 1\rbrack`) will be
                 considered, and the resulting :math:`\mathbf{F}` will be
                 :math:`M_\mathrm{v} \times M^2`. Default value is ``False``.
-        
+
         Returns:
             The coarray selection matrix.
-        
+
         References:
             [1] M. Wang and A. Nehorai, "Coarrays, MUSIC, and the Cramér-Rao
             Bound," IEEE Transactions on Signal Processing, vol. 65, no. 4,
@@ -163,23 +180,36 @@ class WeightFunction1D:
         else:
             m_ula = 2 * m_v - 1
             diff_range = range(-m_v + 1, m_v)
-        F = np.zeros((m_ula, self._m**2))
+        matrix_f = np.zeros((m_ula, self._m**2))
         for i, diff in enumerate(diff_range):
-            F[i, self.indices_of(diff)] = 1.0 / self.weight_of(diff)
-        return F
-    
+            matrix_f[i, self.indices_of(diff)] = 1.0 / self.weight_of(diff)
+        return matrix_f
+
     def _build_map(self, array):
-        # Maps difference -> indices in the vectorized difference matrix 
+        """Generate a map of difference-indices pairs (every difference may has
+        multiple indices) and a array contains all difference in ascending
+        order without duplicates.
+
+        Args:
+            array (~doatools.model.arrays.ArrayDesign): the array used to
+                get difference co-array
+        """
+        # Maps difference -> indices in the vectorized difference matrix
         index_map = {}
         diffs = compute_location_differences(array.element_indices).flatten()
+
         for i, diff in enumerate(diffs):
             if diff in index_map:
                 index_map[diff].append(i)
             else:
                 index_map[diff] = [i]
+
         # Collect all unique differences and sort them
         differences = np.fromiter(index_map.keys(),
             dtype=np.int_, count=len(index_map))
         differences.sort()
+
+        # the difference-indices map
         self._index_map = index_map
+        # all differences without duplicates in order
         self._differences = differences

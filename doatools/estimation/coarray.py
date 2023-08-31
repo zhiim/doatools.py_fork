@@ -6,7 +6,7 @@ from ..utils.math import vec
 
 class CoarrayACMBuilder1D:
     """Creates a coarray-based augmented covariance matrix builder.
-    
+
     Based on the specified sensor array, creates a callable object that can
     transform sample covariance matrices obtained from the physical array model
     into augmented covariance matrices under the difference coarray model

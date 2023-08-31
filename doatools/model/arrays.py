@@ -495,7 +495,7 @@ class GridBasedArrayDesign(ArrayDesign):
         i_1 \mathbf{v}_1 + i_2 \mathbf{v}_2 + \cdots + i_d \mathbf{v}_d.
 
     Args:
-        indices (ndarray): m x d matrix denoting the grid indices
+        indices (ndarray): m x d (m is the number of array elements, and d is the number of dimensions) matrix denoting the grid indices
             of each element. The input ndarray is not copied and should never be
             changed after creating this array design.
         d0 (float): Grid size (or base inter-element spacing). For 2D and 3D
@@ -594,7 +594,7 @@ class UniformLinearArray(GridBasedArrayDesign):
 ## without reviews
 
 class NestedArray(GridBasedArrayDesign):
-    """Creates a 1D nested array.
+    """Creates a 1D nested array. (two level nested)
 
     Args:
         n1 (int): Parameter N1.
