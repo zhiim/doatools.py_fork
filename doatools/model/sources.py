@@ -423,7 +423,7 @@ class FarField2DSourcePlacement(SourcePlacement):
     @property
     def is_far_field(self):
         return True
-    
+
     @property
     def valid_ranges(self):
         return FarField2DSourcePlacement.VALID_RANGES[self._units[0]]

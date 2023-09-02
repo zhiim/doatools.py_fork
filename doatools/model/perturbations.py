@@ -115,12 +115,12 @@ class ArrayPerturbation:
                 \cdots &
                 \frac{\partial C(\mathbf{a}(\mathbf{\theta}_K))}{\partial \theta_{Kd}}
             \end{bmatrix}.
-        
+
         Args:
             A (~numpy.ndarray): Steering matrix input.
             DA (list): A list of derivative matrices. If this list is empty,
                 there is no need to consider the derivative matrices.
-        
+
         Returns:
             tuple: A two element tuple. The first element is the perturbed
             steering matrix. The second element is a list of perturbed
@@ -131,7 +131,7 @@ class ArrayPerturbation:
 
 class LocationErrors(ArrayPerturbation):
     """Creates an array perturbation that models sensor location errors.
-    
+
     Args:
         location_errors: Location error matrix.
         known (bool): Specifies whether this perturbation is known in prior.
@@ -149,10 +149,10 @@ class LocationErrors(ArrayPerturbation):
 
     def is_applicable_to(self, array):
         m = self._params.shape[0]
-        # Array size (number of sensors in array) should be equal with size of 
+        # Array size (number of sensors in array) should be equal with size of
         # location error matrix
         if array.size != m:
-            # String in return describes why the location error matrix not 
+            # String in return describes why the location error matrix not
             # appliable with this array
             return False, 'Expecting an array of size {0}'.format(m)
         else:
@@ -160,7 +160,8 @@ class LocationErrors(ArrayPerturbation):
 
     def perturb_sensor_locations(self, locations):
         # The passed in parameter `locations` is a 2D matrix.
-        # For 1D, 2D and 3D antenna array, locations.shape[1] will be 1, 2 and 3.
+        # For 1D, 2D and 3D antenna array, locations.shape[1] will be
+        # 1, 2 and 3.
         array_dim = locations.shape[1]
         loc_err_dim = self._params.shape[1]
 
@@ -200,8 +201,8 @@ class GainErrors(ArrayPerturbation):
             return False, 'The array element must have a scalar output.'
 
         m = self._params.shape[0]
-        # Gain error is applied to every element in antenna array, so `gain_erros` 
-        # size should be equal with array size.
+        # Gain error is applied to every element in antenna array,
+        # so `gain_erros` size should be equal with array size.
         if array.size != m:
             return False, 'Expecting an array of size {0}'.format(m)
 
@@ -210,7 +211,7 @@ class GainErrors(ArrayPerturbation):
 
     def perturb_steering_matrix(self, A, DA):
         r"""Perturbs the steering matrix with gain errors.
-        
+
         Given the gain error vector, :math:`\mathbf{g}`, the perturbed steering
         matrix is computed as
 
@@ -229,7 +230,7 @@ class GainErrors(ArrayPerturbation):
             A (~numpy.ndarray): Steering matrix input.
             DA (list): A list of derivative matrices. If this list is empty,
                 there is no need to consider the derivative matrices.
-        
+
         Returns:
             tuple: A two element tuple. The first element is the perturbed
             steering matrix. The second element is a list of perturbed
@@ -287,7 +288,7 @@ class PhaseErrors(ArrayPerturbation):
             A (~numpy.ndarray): Steering matrix input.
             DA (list): A list of derivative matrices. If this list is empty,
                 there is no need to consider the derivative matrices.
-        
+
         Returns:
             tuple: A two element tuple. The first element is the perturbed
             steering matrix. The second element is a list of perturbed
@@ -337,12 +338,12 @@ class MutualCoupling(ArrayPerturbation):
         .. math::
 
             \dot{\tilde{\mathbf{A}}}_i = \mathbf{C} \dot{\mathbf{A}}_i.
-        
+
         Args:
             A (~numpy.ndarray): Steering matrix input.
             DA (list): A list of derivative matrices. If this list is empty,
                 there is no need to consider the derivative matrices.
-        
+
         Returns:
             tuple: A two element tuple. The first element is the perturbed
             steering matrix. The second element is a list of perturbed

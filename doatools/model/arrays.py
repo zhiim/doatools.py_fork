@@ -495,8 +495,9 @@ class GridBasedArrayDesign(ArrayDesign):
         i_1 \mathbf{v}_1 + i_2 \mathbf{v}_2 + \cdots + i_d \mathbf{v}_d.
 
     Args:
-        indices (ndarray): m x d (m is the number of array elements, and d is the number of dimensions) matrix denoting the grid indices
-            of each element. The input ndarray is not copied and should never be
+        indices (ndarray): m x d (m is the number of array elements, and d is
+            the number of dimensions) matrix denoting the grid indices of each
+            element. The input ndarray is not copied and should never be
             changed after creating this array design.
         d0 (float): Grid size (or base inter-element spacing). For 2D and 3D
             arrays, d0 can either be a scalar (if the base inter-element

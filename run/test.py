@@ -1,16 +1,14 @@
 import sys
 sys.path.append('../')
 
-from doatools.model.arrays import NestedArray
-from doatools.model.coarray import compute_location_differences, \
-    WeightFunction1D
+import numpy as np
+from doatools.model.arrays import GridBasedArrayDesign
+from doatools.model.coarray import WeightFunction1D
 
-nested = NestedArray(n1=3, n2=3, d0=1)
+array_indice = np.array([0, 1, 4]).reshape(-1, 1)
+array = GridBasedArrayDesign(indices=array_indice, d0=1)
 
-diff = compute_location_differences(nested.element_locations)
+weight_fun = WeightFunction1D(array=array)
 
-weight_fun = WeightFunction1D(nested)
-
-print(weight_fun.differences())
-print(weight_fun.get_central_ula_size(True))
+print(weight_fun.get_coarray_selection_matrix())
 

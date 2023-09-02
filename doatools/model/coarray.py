@@ -23,8 +23,8 @@ def compute_location_differences(locations):
     # m is the number of elements, d is the number of dimensions
     m, d = locations.shape
     # Use broadcasting to compute pairwise differences.
-    D = locations.reshape((1, m, d)) - locations.reshape((m, 1, d))
-    return D.reshape((-1, d))
+    matrix_d = locations.reshape((1, m, d)) - locations.reshape((m, 1, d))
+    return matrix_d.reshape((-1, d))
 
 def compute_unique_location_differences(locations, atol=0.0, rtol=1e-8):
     """Computes all unique locations differences.
@@ -180,6 +180,7 @@ class WeightFunction1D:
         else:
             m_ula = 2 * m_v - 1
             diff_range = range(-m_v + 1, m_v)
+
         matrix_f = np.zeros((m_ula, self._m**2))
         for i, diff in enumerate(diff_range):
             matrix_f[i, self.indices_of(diff)] = 1.0 / self.weight_of(diff)

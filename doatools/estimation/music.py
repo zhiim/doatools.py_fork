@@ -1,14 +1,11 @@
 import numpy as np
-from math import ceil
-from scipy.signal import find_peaks
-import warnings
 from ..model.sources import FarField1DSourcePlacement
 from .core import SpectrumBasedEstimatorBase, get_noise_subspace, \
                   ensure_covariance_size, ensure_n_resolvable_sources
 
 def f_music(A, En):
     r"""Computes the classical MUSIC spectrum
-    
+
     This is a vectorized implementation of the spectrum function:
 
     .. math::
@@ -28,7 +25,7 @@ def f_music(A, En):
 
 class MUSIC(SpectrumBasedEstimatorBase):
     """Creates a spectrum-based MUSIC estimator.
-    
+
     The MUSIC spectrum is computed on a predefined-grid using
     :meth:`~doatools.estimation.music.f_music`, and the source locations are
     estimated by identifying the peaks.
