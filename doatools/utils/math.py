@@ -1,6 +1,4 @@
 import numpy as np
-from scipy.signal import find_peaks
-from scipy.ndimage import maximum_filter
 
 def vec(x):
     """Vectorizes a matrix by stacking the columns.
@@ -87,7 +85,6 @@ def randcn(shape):
     # x = 1j * rng.standard_normal(*shape)
     # x += rng.standard_normal(*shape)
 
-    print(shape)
     x = 1j * np.random.randn(*shape)
     x += np.random.randn(*shape)
 
@@ -96,7 +93,7 @@ def randcn(shape):
 
 def unique_rows(x, atol=0.0, rtol=1e-8, return_index=False, sort=False):
     """Obtains the unique rows within the specified tolerance.
-    
+
     This function is designed to obtain unique rows from a matrix while
     considering floating-point errors. Hence, the tolerance is usually set to
     small values. This function matches rows in a greedy manner.

@@ -37,7 +37,7 @@ class MUSIC(SpectrumBasedEstimatorBase):
             used to locate the sources.
         **kwargs: Other keyword arguments supported by
             :class:`~doatools.estimation.core.SpectrumBasedEstimatorBase`.
-    
+
     References:
         [1] R. Schmidt, "Multiple emitter location and signal parameter
         estimation," IEEE Transactions on Antennas and Propagation,
@@ -46,7 +46,7 @@ class MUSIC(SpectrumBasedEstimatorBase):
 
     def __init__(self, array, wavelength, search_grid, **kwargs):
         super().__init__(array, wavelength, search_grid, **kwargs)
-        
+
     def estimate(self, R, k, **kwargs):
         """Estimates the source locations from the given covariance matrix.
 
@@ -65,7 +65,7 @@ class MUSIC(SpectrumBasedEstimatorBase):
             refinement_iters (int): Number of refinement iterations. More
                 iterations generally lead to better results, at the cost of
                 increased computational complexity. Default value is 3.
-        
+
         Returns:
             A tuple with the following elements.
 
@@ -124,7 +124,7 @@ class RootMUSIC1D:
             unit (str): Unit of the estimates. Default value is ``'rad'``.
                 See :class:`~doatools.model.sources.FarField1DSourcePlacement`
                 for more details on valid units.
-        
+
         Returns:
             A tuple with the following elements.
 
@@ -174,7 +174,9 @@ class RootMUSIC1D:
                             dist = cur_dist
                             idx = j
                 if idx < 0:
-                    raise RuntimeError('Unpaired point found on the unit circle, which is impossible.')
+                    raise RuntimeError(
+                        'Unpaired point found on the unit circle,\
+                              which is impossible.')
                 mask[idx] = False
         z = z[mask]
         sorted_indices = np.argsort(1.0 - np.abs(z))
@@ -182,4 +184,5 @@ class RootMUSIC1D:
             return False, None
         else:
             z = z[sorted_indices[:k]]
-            return True, FarField1DSourcePlacement.from_z(z, self._wavelength, d0, unit)
+            return True, FarField1DSourcePlacement.from_z(z, self._wavelength,
+                                                          d0, unit)

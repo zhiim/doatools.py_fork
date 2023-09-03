@@ -38,14 +38,14 @@ class CoarrayACMBuilder1D:
     def output_size(self):
         """Retrieves the size of the output/transformed covariance matrix."""
         return self._w.get_central_ula_size(True)
-    
+
     def get_virtual_ula(self, name=None):
         """Retrieves the corresponding virtual uniform linear array.
 
         Args:
             name (str): Name of the virtual uniform linear array. If not
                 specified, a default name will be generated.
-        
+
         Returns:
             ~doatools.model.arrays.UniformLinearArray: A uniform linear array
             corresponding to the augmented covariance matrix.
@@ -61,12 +61,12 @@ class CoarrayACMBuilder1D:
             R (~numpy.ndarray): Sample covariance matrix.
             method (str): ``'ss'`` for spatial-smoothing based transformation,
                 and ``'da'`` for direct-augmentation based transformation.
-                
+
                 It should be noted that direct-augmentation does not guarantee
                 the positive-definiteness of augmented covariance matrix, which
                 may lead to unexpected results when using beamforming-based
                 estimators.
-          
+
         Returns:
             ~numpy.ndarray: The augmented covariance matrix.
 

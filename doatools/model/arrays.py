@@ -1,5 +1,4 @@
 from math import gcd
-from ..utils.math import cartesian
 import numpy as np
 import warnings
 import copy
@@ -654,8 +653,10 @@ class CoPrimeArray(GridBasedArrayDesign):
         if m > n:
             warnings.warn('m > n. Swapped.')
             m, n = n, m
-        if gcd(m, n) != 1:
+        # if m and n are not co-prime
+        if (m <=0 or n <=0) or gcd(m, n) != 1:
             raise ValueError('{0} and {1} are not co-prime.'.format(m, n))
+
         self._coprime_pair = (m, n)
         mode = mode.lower()
         if mode == '2m':

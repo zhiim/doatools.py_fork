@@ -73,10 +73,10 @@ class SpectrumBasedEstimatorBase(ABC):
         self._peak_finder = peak_finder
         self._enable_caching = enable_caching
         self._atom_matrix = None
-    
+
     def _compute_atom_matrix(self, grid):
         """Computes the atom matrix for spectrum computation.
-        
+
         An atom matrix, A, is an M x K matrix, where M is the number of sensors
         and K is equal to the size of the search grid. For instance, in MUSIC,
         the atom matrix is just the steering matrix. The spectrum output for
@@ -85,7 +85,7 @@ class SpectrumBasedEstimatorBase(ABC):
 
         Because A is actually the steering matrix in many spectrum based
         estimators (e.g., MVDR, MUSIC), the default implementation will create
-        steering matrice. 
+        steering matrice.
 
         Args:
             grid: The search grid used to generate the atom matrix.
@@ -130,7 +130,7 @@ class SpectrumBasedEstimatorBase(ABC):
             f_sp: A callable object that accepts the atom matrix as the
                 parameter and return a 1D numpy array representing the computed
                 spectrum.
-            k (int): Expected number of sources. 
+            k (int): Expected number of sources.
             return_spectrum: Set to True to also output the spectrum for
                 visualization.
             refine_estimates: Set to True to enable grid refinement to obtain
@@ -141,7 +141,7 @@ class SpectrumBasedEstimatorBase(ABC):
             refinement_iters: Number of refinement iterations. More iterations
                 generally lead to better results, at the cost of increased
                 computational complexity. Default value is 3.
-        
+
         Returns:
             resolved (bool): A boolean indicating if the desired number of
                 sources are found. This flag does not guarantee that the
@@ -183,23 +183,26 @@ class SpectrumBasedEstimatorBase(ABC):
             # Note that we need to convert n-d indices to flattened indices.
             # We sorted the flattened indices here to respect the ordering of
             # source locations in the search grid.
-            flattened_indices = np.ravel_multi_index(peak_indices, self._search_grid.shape)
+            flattened_indices = np.ravel_multi_index(peak_indices,
+                                                     self._search_grid.shape)
             flattened_indices.sort()
             estimates = self._search_grid.source_placement[flattened_indices]
             if refine_estimates:
                 # Convert sorted flattened indices back to a tuple of coordinate
                 # arrays.
-                peak_indices = np.unravel_index(flattened_indices, self._search_grid.shape)
+                peak_indices = np.unravel_index(flattened_indices,
+                                                self._search_grid.shape)
                 self._refine_estimates(f_sp, estimates, peak_indices,
                                        refinement_density, refinement_iters)
             if return_spectrum:
                 return True, estimates, sp
             else:
                 return True, estimates
-        
-    def _refine_estimates(self, f_sp, est0, peak_indices, density=10, n_iters=3):
+
+    def _refine_estimates(self, f_sp, est0, peak_indices, density=10,
+                          n_iters=3):
         """Refines the estimates.
-        
+
         Given the i-th estimate, a refined grid will be created around it. The
         spectrum function will be evaluated on this refined grid and a new peak
         will be located to update the i-th estimate. This process is repeated
@@ -218,7 +221,8 @@ class SpectrumBasedEstimatorBase(ABC):
         # We modify the estimated locations **in-place** here.
         locations = est0.locations
         # Create initial refined grids.
-        subgrids = self._search_grid.create_refined_grids_at(*peak_indices, density=density)
+        subgrids = self._search_grid.create_refined_grids_at(*peak_indices,
+                                                             density=density)
         for r in range(n_iters):
             for i in range(len(subgrids)):
                 g = subgrids[i]
@@ -232,4 +236,5 @@ class SpectrumBasedEstimatorBase(ABC):
                     continue
                 # Continue to create finer grids.
                 peak_coord = np.unravel_index(i_max, g.shape)
-                subgrids[i] = g.create_refined_grid_at(peak_coord, density=density)
+                subgrids[i] = g.create_refined_grid_at(peak_coord,
+                                                       density=density)

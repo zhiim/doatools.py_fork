@@ -457,7 +457,7 @@ class FarField2DSourcePlacement(SourcePlacement):
             locations = np.deg2rad(self._locations)
         else:
             locations = self._locations
-        
+
         s = 2 * np.pi / wavelength
         cos_el = np.cos(locations[:, 1])
         if sensor_locations.shape[1] == 1:
@@ -476,7 +476,7 @@ class FarField2DSourcePlacement(SourcePlacement):
                 D = s * (np.outer(sensor_locations[:, 0], cc) +
                          np.outer(sensor_locations[:, 1], cs) +
                          np.outer(sensor_locations[:, 2], np.sin(locations[:, 1])))
-        
+
         return D
 
 class NearField2DSourcePlacement(SourcePlacement):
@@ -512,7 +512,7 @@ class NearField2DSourcePlacement(SourcePlacement):
     def _align_location_dims(self, sensor_locations):
         """Adds necessary paddings when the sources locations and sensor
         locations have different number of dimensions.
-        
+
         Returns:
             tuple: A two-element tuple containing padded sources locations and
             sensor locations.
@@ -520,30 +520,38 @@ class NearField2DSourcePlacement(SourcePlacement):
         source_locations = self._locations
         if sensor_locations.shape[1] < 2:
             # 1D arrays
-            sensor_locations = np.pad(sensor_locations, ((0, 0), (0, 1)), 'constant')
+            sensor_locations = np.pad(sensor_locations, ((0, 0), (0, 1)),
+                                      'constant')
         elif sensor_locations.shape[1] > 2:
             # 3D arrays
-            source_locations = np.pad(source_locations, ((0, 0), (0, 1)), 'constant')
+            source_locations = np.pad(source_locations, ((0, 0), (0, 1)),
+                                      'constant')
         return source_locations, sensor_locations
 
     def calc_spherical_coords(self, ref_locations):
-        source_locations, ref_locations = self._align_location_dims(ref_locations)
+        source_locations, ref_locations =\
+            self._align_location_dims(ref_locations)
         m = ref_locations.shape[0]
         k, d = source_locations.shape
         # Compute pair-wise differences.
-        diffs = source_locations.reshape((1, k, d)) - ref_locations.reshape((m, 1, d))
+        diffs = source_locations.reshape((1, k, d)) -\
+            ref_locations.reshape((m, 1, d))
         diffs = diffs.reshape((-1, d))
         s = cart2spherical(diffs)
-        return s[:, 0].reshape((m, k)), s[:, 1].reshape((m, k)), s[:, 2].reshape((m, k))
+        return s[:, 0].reshape((m, k)), s[:, 1].reshape((m, k)),\
+              s[:, 2].reshape((m, k))
 
-    def phase_delay_matrix(self, sensor_locations, wavelength, derivatives=False):
+    def phase_delay_matrix(self, sensor_locations, wavelength,
+                           derivatives=False):
         """Computes the phase delay matrix for 2D near-field sources."""
         _validate_sensor_location_ndim(sensor_locations)
         if derivatives:
-            raise ValueError('Derivative matrix computation is not supported for near-field 2D DOAs.')
+            raise ValueError('Derivative matrix computation is not supported\
+                              for near-field 2D DOAs.')
 
         # Align the number of dimensions
-        source_locations, sensor_locations = self._align_location_dims(sensor_locations)
+        source_locations, sensor_locations =\
+            self._align_location_dims(sensor_locations)
 
         # Negative phase = arrive later
         s = - 2 * np.pi / wavelength
