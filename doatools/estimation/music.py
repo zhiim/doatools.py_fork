@@ -20,8 +20,11 @@ def f_music(A, En):
         En: m x d matrix of noise eigenvectors, where d is the dimension of the
             noise subspace.
     """
+    # @ is a shorthand for matrix multiple
     v = En.T.conj() @ A
-    return np.reciprocal(np.sum(v * v.conj(), axis=0).real)
+    # * is a shorthand for matrix element-wise multiple
+    return np.reciprocal(np.absolute(np.sum(v * v.conj(), axis=0)))
+    # return np.reciprocal(np.sum(v * v.conj(), axis=0).real)
 
 class MUSIC(SpectrumBasedEstimatorBase):
     """Creates a spectrum-based MUSIC estimator.

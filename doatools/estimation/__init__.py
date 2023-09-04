@@ -8,3 +8,4 @@ from .grid import FarField1DSearchGrid, FarField2DSearchGrid, NearField2DSearchG
 from .coarray import CoarrayACMBuilder1D
 from .preprocessing import spatial_smooth, l1_svd
 from .source_number import aic, mdl, sorte
+from .pm import PM

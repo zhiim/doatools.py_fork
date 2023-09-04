@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
 import numpy as np
 import doatools.model as model
@@ -33,7 +33,7 @@ _, R = model.get_narrowband_snapshots(ula, sources, wavelength, source_signal,
 
 # Create a MUSIC-based estimator.
 grid = estimation.FarField1DSearchGrid()
-estimator = estimation.MUSIC(ula, wavelength, grid)
+estimator = estimation.PM(ula, wavelength, grid)
 
 # Get the estimates.
 resolved, estimates, sp = estimator.estimate(R, sources.size,
@@ -42,5 +42,5 @@ print('Estimates: {0}'.format(estimates.locations))
 print('Ground truth: {0}'.format(sources.locations))
 
 # Plot the MUSIC-spectrum.
-doaplot.plot_spectrum({'MUSIC': sp}, grid, ground_truth=sources,
+doaplot.plot_spectrum({'PM': sp}, grid, ground_truth=sources,
                       use_log_scale=True)

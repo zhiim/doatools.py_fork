@@ -18,7 +18,8 @@ def ensure_covariance_size(R, array):
         )
 
 def ensure_n_resolvable_sources(k, max_k):
-    """Checks if the number of expected sources exceeds the maximum resolvable sources."""
+    """Checks if the number of expected sources exceeds the maximum resolvable
+    sources."""
     if k > max_k:
         raise ValueError(
             'Too many sources. Maximum number of resolvable sources is {0}'
