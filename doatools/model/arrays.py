@@ -2,6 +2,7 @@ from math import gcd
 import numpy as np
 import warnings
 import copy
+from ..utils.math import cartesian
 from .array_elements import ISOTROPIC_SCALAR_SENSOR
 from .perturbations import LocationErrors, GainErrors, PhaseErrors, \
                            MutualCoupling

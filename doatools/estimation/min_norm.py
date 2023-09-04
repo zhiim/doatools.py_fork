@@ -5,7 +5,7 @@ from ..utils.math import abs_squared
 
 class MinNorm(SpectrumBasedEstimatorBase):
     """Creates a spectrum-based Min-Norm estimator.
-    
+
     The Min-Norm spectrum is computed on a predefined-grid, and the source
     locations are estimated by identifying the peaks.
 
@@ -16,11 +16,11 @@ class MinNorm(SpectrumBasedEstimatorBase):
             used to locate the sources.
         **kwargs: Other keyword arguments supported by
             :class:`~doatools.estimation.core.SpectrumBasedEstimatorBase`.
-    
+
     Notes:
         The Min-Norm algorithm is sometimes referred to in the literature as a
         weighted MUSIC algorithm because it uses weighted eigenspaces.
-    
+
     References:
         [1] R. Kumaresan and D. W. Tufts, "Estimating the angles of arrival of
         multiple plane waves," IEEE Trans. Aerospace Electron. Syst.,
@@ -48,7 +48,7 @@ class MinNorm(SpectrumBasedEstimatorBase):
             refinement_iters (int): Number of refinement iterations. More
                 iterations generally lead to better results, at the cost of
                 increased computational complexity. Default value is 3.
-        
+
         Returns:
             A tuple with the following elements.
 

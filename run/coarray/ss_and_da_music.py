@@ -38,9 +38,6 @@ grid = estimation.FarField1DSearchGrid(size=720)
 acm_builder = estimation.CoarrayACMBuilder1D(cpa)
 virtual_ula = acm_builder.get_virtual_ula()
 
-print(cpa.element_indices)
-print(acm_builder.get_virtual_ula().element_indices)
-
 Rss = acm_builder.transform(R, method='ss')
 Rda = acm_builder.transform(R, method='da')
 music = estimation.MUSIC(virtual_ula, wavelength, grid)

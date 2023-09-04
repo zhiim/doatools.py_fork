@@ -4,7 +4,7 @@ def spatial_smooth(R, l, fb=False):
     """Applies spatial smoothing to the given covariance matrix.
 
     Spatial smoothing can decorrelate coherent sources.
-    
+
     Args:
         R: Input covariance matrix. Both real and complex covariance matrices
             are supported.
@@ -13,21 +13,22 @@ def spatial_smooth(R, l, fb=False):
         fb (bool): Set to ``True`` to enable forward-backward spatial smoothing.
             Default value is False and only forward mode spatial smoothing is
             computed.
-    
+
     Returns:
         An (m - l + 1) x (m - l + 1) spatially-smoothed covariance matrix, where
         m is the size of the input covariance matrix.
 
     References:
         [1] S. U. Pillai and B. H. Kwon, "Forward/backward spatial smoothing
-        techniques for coherent signal identification," IEEE Transactions on 
+        techniques for coherent signal identification," IEEE Transactions on
         Acoustics, Speech, and Signal Processing, vol. 37, no. 1, pp. 8-15,
         Jan. 1989.
     """
     m = R.shape[0]
     if l < 1 or l > m:
-        raise ValueError('The number of subarrays must be within [1, {0}].'.format(m))
-    
+        raise ValueError('The number of subarrays must be within [1, {0}].'\
+                         .format(m))
+
     # Forward pass
     Rf = R[:m-l+1, :m-l+1].copy()
     for i in range(1, l):
@@ -35,7 +36,7 @@ def spatial_smooth(R, l, fb=False):
     Rf /= l
     if not fb:
         return Rf
-    
+
     # Adds backward pass
     if np.iscomplexobj(Rf):
         return 0.5 * (Rf + np.flip(Rf).conj())
@@ -44,13 +45,13 @@ def spatial_smooth(R, l, fb=False):
 
 def l1_svd(y, k):
     r"""Performs :math:`l_1`-SVD to help reduce the dimensionality.
-    
+
     Consider the following measurement model
 
     .. math::
 
         \mathbf{Y} = \mathbf{A}\mathbf{X} + \mathbf{N}, (1)
-    
+
     where :math:`\mathbf{Y} \in \mathbb{C}^{M \times N}` is the matrix of
     snapshots, :math:`\mathbf{A} \in \mathbb{C}^{M \times K}` is the steering
     matrix, :math:`\mathbf{X} \in \mathbb{C}^{K \times N}` consists of source
@@ -74,7 +75,7 @@ def l1_svd(y, k):
 
         \mathbf{Y}_\mathrm{sv}
         = \mathbf{A}\mathbf{X}_\mathrm{sv} + \mathbf{N}_\mathrm{sv}, (2)
-    
+
     where :math:`\mathbf{Y}_\mathrm{sv} = \mathbf{Y}\mathbf{V}\mathbf{T}_K`,
     :math:`\mathbf{X}_\mathrm{sv} = \mathbf{X}\mathbf{V}\mathbf{T}_K`,
     and :math:`\mathbf{N}_\mathrm{sv} = \mathbf{N}\mathbf{V}\mathbf{T}_K`.
