@@ -376,7 +376,6 @@ class FarField1DSourcePlacement(SourcePlacement):
                           np.outer(sensor_locations[:, 1], sin_vals / cos_vals))
         return (D, DD) if derivatives else D
 
-# reviewed
 class FarField2DSourcePlacement(SourcePlacement):
     """Creates a far-field 2D source placement.
 
@@ -405,9 +404,11 @@ class FarField2DSourcePlacement(SourcePlacement):
         if unit not in FarField2DSourcePlacement.VALID_RANGES:
             raise ValueError(
                 'Unit can only be one of the following: {0}.'
-                .format(', '.join(FarField2DSourcePlacement.VALID_RANGES.keys()))
+                .format(', '.join(FarField2DSourcePlacement.VALID_RANGES.\
+                                  keys()))
             )
-        (min_az, max_az), (min_el, max_el) = FarField2DSourcePlacement.VALID_RANGES[unit]
+        (min_az, max_az), (min_el, max_el) = FarField2DSourcePlacement.\
+                                            VALID_RANGES[unit]
         if np.any(locations[:, 0] < min_az) or np.any(locations[:, 0] > max_az):
             raise ValueError(
                 "When unit is '{0}', azimuth angles must be within [{1}, {2}]."
@@ -415,9 +416,10 @@ class FarField2DSourcePlacement(SourcePlacement):
             )
         if np.any(locations[:, 1] < min_el) or np.any(locations[:, 1] > max_el):
             raise ValueError(
-                "When unit is '{0}', elevation angles must be within [{1}, {2}]."
-                .format(unit, min_el, max_el)
+                "When unit is '{0}', elevation angles must be within\
+                      [{1}, {2}].".format(unit, min_el, max_el)
             )
+
         super().__init__(locations, (unit, unit))
 
     @property
@@ -435,22 +437,26 @@ class FarField2DSourcePlacement(SourcePlacement):
         )
 
     def calc_spherical_coords(self, ref_locations):
-        m = ref_locations.shape[0]
-        k = self.size
-        # The coordinates do not depend on reference locations.
-        # Just repeat the rows.
-        r = np.full((m, k), np.inf)
+        m = ref_locations.shape[0]  # number of sensors
+        k = self.size  # number of sources
+        # For far field sources, the coordinates do not depend on reference
+        # locations. Just repeat the rows.
+        r = np.full((m, k), np.inf)  # far field sources
         az = convert_angles(self._locations[:, 0], self._units[0], 'rad')
+        # for far field sources, the same source has the same location relative
+        # to different antenna elements
         az = np.tile(az, (m, 1))
         el = convert_angles(self._locations[:, 1], self._units[0], 'rad')
         el = np.tile(el, (m, 1))
         return r, az, el
 
-    def phase_delay_matrix(self, sensor_locations, wavelength, derivatives=False):
+    def phase_delay_matrix(self, sensor_locations, wavelength,
+                           derivatives=False):
         """Computes the phase delay matrix for 2D far-field sources."""
         _validate_sensor_location_ndim(sensor_locations)
         if derivatives:
-            raise ValueError('Derivative matrix computation is not supported for far-field 2D DOAs.')
+            raise ValueError('Derivative matrix computation is not supported\
+                              for far-field 2D DOAs.')
 
         # Unify to radians.
         if self._units[0] == 'deg':
@@ -459,25 +465,30 @@ class FarField2DSourcePlacement(SourcePlacement):
             locations = self._locations
 
         s = 2 * np.pi / wavelength
-        cos_el = np.cos(locations[:, 1])
-        if sensor_locations.shape[1] == 1:
+        cos_el = np.cos(locations[:, 1])  # cos of azimuth angles
+        if sensor_locations.shape[1] == 1:  # if the array is a linear array
             # Linear arrays are assumed to be placed along the x-axis
             # Need to convert azimuth-elevation pairs to broadside angles.
-            D = s * np.outer(sensor_locations, cos_el * np.cos(locations[:, 0]))
+            matrix_d = s * np.outer(
+                sensor_locations,
+                cos_el * np.cos(locations[:, 0])
+                )
         else:
             # Notes: the sum of outer products can also be rewritten using
-            #        matrix multiplications.
+            # matrix multiplications.
             cc = cos_el * np.cos(locations[:, 0])
             cs = cos_el * np.sin(locations[:, 0])
-            if sensor_locations.shape[1] == 2:
-                D = s * (np.outer(sensor_locations[:, 0], cc) +
+            if sensor_locations.shape[1] == 2:  # if the array is a 2D array
+                matrix_d = s * (np.outer(sensor_locations[:, 0], cc) +
                          np.outer(sensor_locations[:, 1], cs))
-            else:
-                D = s * (np.outer(sensor_locations[:, 0], cc) +
-                         np.outer(sensor_locations[:, 1], cs) +
-                         np.outer(sensor_locations[:, 2], np.sin(locations[:, 1])))
+            else:  # is the array is a 3D array
+                matrix_d = s * (
+                    np.outer(sensor_locations[:, 0], cc)
+                    + np.outer(sensor_locations[:, 1], cs)
+                    + np.outer(sensor_locations[:, 2], np.sin(locations[:, 1]))
+                                )
 
-        return D
+        return matrix_d
 
 class NearField2DSourcePlacement(SourcePlacement):
     """Creates a near-field 2D source placement.

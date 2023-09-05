@@ -9,8 +9,9 @@ class SearchGrid(ABC):
 
     Args:
         axes: A tuple of 1D ndarrays representing the axes of this search
-            grid. The source locations on this search grid will be generated
-            from these axes.
+            grid (every element in the tuple stands for grids in different
+            dimension). The source locations on this search grid will be
+            generated from these axes.
         axis_names: A tuple of strings denoting the names of the axes.
         units (str): A tuple of strings representing the unit used for each
             axis.
@@ -103,7 +104,8 @@ class SearchGrid(ABC):
 
     @abstractmethod
     def _create_source_placement(self):
-        """Creates the source placement instance for this grid.
+        """Creates the source placement instance for this grid. (used to compute
+        spatial spectrum)
 
         Notes:
             Implement this method in a subclass to create the source placement

@@ -72,7 +72,7 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
     """
     # Preprocess the sp input
     sp_list = _build_spectrum_list(sp, grid)
-    x = grid.axes[0]
+    x = grid.axes[0]  # grids in x axes
     has_legend = False
     # 'C3' and 'C2' are reserved for estimates and ground truth
     color_estimates = 'C3'
@@ -136,7 +136,8 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
     return plot_containers
 
 def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
-                     use_log_scale=False, swap_axes=False, color_map='jet'):
+                     use_log_scale=False, plot_2d_mode='img',
+                     swap_axes=False, color_map='jet'):
     """Plots a 2D spectrum.
 
     Args:
@@ -175,22 +176,38 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
     axis_names = grid.axis_names
     units = grid.units
     has_legend = False
-    x, y = axes[ind_x], axes[ind_y]
+    x, y = axes[ind_x], axes[ind_y]  # grids in x and y axes
     x_label = '{0}/{1}'.format(axis_names[ind_x], units[ind_x])
     y_label = '{0}/{1}'.format(axis_names[ind_y], units[ind_y])
-    plot_args = {
-        'extent': (x.min(), x.max(), y.min(), y.max()),
-        'origin': 'lower',
-        'cmap': color_map,
-        'aspect': 'auto'
-    }
     containers = []
-    if use_log_scale:
-        plot_args['norm'] = LogNorm()
-    containers.append(ax.imshow(sp, **plot_args))
-    plt.colorbar(containers[0], ax=ax)
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
+
+    # plot as a plane
+    if plot_2d_mode == 'img':
+        plot_args = {
+            'extent': (x.min(), x.max(), y.min(), y.max()),
+            'origin': 'lower',
+            'cmap': color_map,
+            'aspect': 'auto'
+        }
+        if use_log_scale:
+            plot_args['norm'] = LogNorm()
+        containers.append(ax.imshow(sp, **plot_args))
+        plt.colorbar(containers[0], ax=ax)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+
+    # plot as a 3D surface
+    if plot_2d_mode == 'surface':
+        plot_args = {
+            'cmap': color_map,
+        }
+        if use_log_scale:
+            plot_args['norm'] = LogNorm()
+        x, y = np.meshgrid(x, y)
+        containers.append(ax.plot_surface(x, y, sp, **plot_args))
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+
     if estimates is not None:
         if estimates.units != grid.units:
             raise ValueError('The unit of estimates does not match that of the\
@@ -219,7 +236,8 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
     return containers
 
 def plot_spectrum(sp, grid, ax=None, figsize=None, estimates=None,
-                  ground_truth=None, use_log_scale=False, **kwargs):
+                  ground_truth=None, use_log_scale=False, plot_2d_mode='img',
+                  **kwargs):
     """Plots the given spectrum/spectra.
 
     Provides a convenient way to plot the given spectrum/spectra. Automatically
@@ -240,6 +258,9 @@ def plot_spectrum(sp, grid, ax=None, figsize=None, estimates=None,
             locations. Will be plotted if supplied. Default value is ``None``.
         use_log_scale (bool): Sets whether the spectrum should be plotted in
             logarithmic scale. Default value is ``False``.
+        plot_2d_mode (string): If plot_2d_mode is set to 'img', the 2D spatial
+            spectrum will be plotted like a image; if plot_2d_mode is set to
+            'surface', 2D spectrum will be plotted as a 3D suface.
         **kwargs: Other compatible options depending on the number of dimensions
             of the input grid. See :meth:`plot_spectrum_1d` and
             :meth:`plot_spectrum_2d` for more details.
@@ -255,7 +276,10 @@ def plot_spectrum(sp, grid, ax=None, figsize=None, estimates=None,
     """
     if ax is None:
         fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(111)
+        if plot_2d_mode == 'img':
+            ax = fig.add_subplot(111)
+        if plot_2d_mode == 'surface':
+            ax = fig.add_subplot(111, projection='3d')
         new_plot = True
     else:
         new_plot = False
@@ -264,7 +288,7 @@ def plot_spectrum(sp, grid, ax=None, figsize=None, estimates=None,
                                use_log_scale, **kwargs)
     elif grid.ndim == 2:
         ret = plot_spectrum_2d(sp, grid, ax, estimates, ground_truth,
-                               use_log_scale, **kwargs)
+                               use_log_scale, plot_2d_mode, **kwargs)
     else:
         raise NotImplementedError()
     if new_plot:

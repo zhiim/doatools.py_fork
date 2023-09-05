@@ -31,7 +31,7 @@ _, R = model.get_narrowband_snapshots(ula, sources, wavelength, source_signal,
                                       noise_signal, n_snapshots,
                                       return_covariance=True)
 
-# Create a MUSIC-based estimator.
+# Create a PM-based estimator.
 grid = estimation.FarField1DSearchGrid()
 estimator = estimation.PM(ula, wavelength, grid)
 
@@ -41,6 +41,6 @@ resolved, estimates, sp = estimator.estimate(R, sources.size,
 print('Estimates: {0}'.format(estimates.locations))
 print('Ground truth: {0}'.format(sources.locations))
 
-# Plot the MUSIC-spectrum.
+# Plot the PM-spectrum.
 doaplot.plot_spectrum({'PM': sp}, grid, ground_truth=sources,
                       use_log_scale=True)

@@ -1,3 +1,9 @@
+# ss-music and spatial music under coprime array
+
+# reference: M. Wang and A. Nehorai, "Coarrays, MUSIC, and the Cramér-Rao
+# Bound," *IEEE Transactions on Signal Processing*, vol. 65, no. 4, pp. 933-946,
+# Feb. 2017.
+
 import sys
 sys.path.append('../../')
 

@@ -1,3 +1,6 @@
+# compare degree of freedom of co-arrays drived from ula, nested array and
+# coprime array
+
 import sys
 sys.path.append('../../')
 
