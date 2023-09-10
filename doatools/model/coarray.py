@@ -142,6 +142,11 @@ class WeightFunction1D:
             while mv in self._index_map:
                 mv += 1
             self._mv = mv
+
+        # if exclude_negative_part:
+        #     return self._mv
+        # else:
+        #     return self._mv * 2 -1
         return self._mv if exclude_negative_part else self._mv * 2 - 1
 
     def get_coarray_selection_matrix(self, exclude_negative_part=False):

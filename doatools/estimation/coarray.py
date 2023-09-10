@@ -54,11 +54,11 @@ class CoarrayACMBuilder1D:
             name = 'Virtual ULA of ' + self._array.name
         return UniformLinearArray(self.output_size, self._array.d0, name)
 
-    def transform(self, R, method='ss'):
+    def transform(self, matrix_r, method='ss'):
         """Transforms the input sample covariance matrix.
 
         Args:
-            R (~numpy.ndarray): Sample covariance matrix.
+            matrix_r (~numpy.ndarray): Sample covariance matrix.
             method (str): ``'ss'`` for spatial-smoothing based transformation,
                 and ``'da'`` for direct-augmentation based transformation.
 
@@ -80,24 +80,28 @@ class CoarrayACMBuilder1D:
             *IEEE Transactions on Signal Processing*, vol. 58, no. 8,
             pp. 4167-4181, Aug. 2010.
         """
-        ensure_covariance_size(R, self._array)
+        ensure_covariance_size(matrix_r, self._array)
         if method not in ['ss', 'da']:
             raise ValueError('Method can only be one of the following: ss, da.')
-        mc = self._w.get_central_ula_size()
+        mc = self._w.get_central_ula_size()  # size of the 2*mv-1 virtual ula
         mv = (mc + 1) // 2
+        r = vec(matrix_r)
+
+        # get received signal of the 2*mv-1 virtual ula
         z = np.zeros((mc,), dtype=np.complex_)
-        r = vec(R)
         for i in range(mc):
             diff = i - mv + 1
             z[i] = np.mean(r[self._w.indices_of(diff)])
-        Ra = np.zeros((mv, mv), dtype=np.complex_)
+
+        # construct covariance matrix of virtual ula by ss or da mathod
+        matrix_rv = np.zeros((mv, mv), dtype=np.complex_)
         if method == 'ss':
             # Spatial smoothing
             for i in range(mv):
-                Ra += np.outer(z[i:i+mv], z[i:i+mv].conj())
-            Ra /= mv
+                matrix_rv += np.outer(z[i:i+mv], z[i:i+mv].conj())
+            matrix_rv /= mv
         else:
             # Direct augmentation
             for i in range(mv):
-                Ra[:,-(i+1)] = z[i:i+mv]
-        return Ra
+                matrix_rv[:,-(i+1)] = z[i:i+mv]
+        return matrix_rv

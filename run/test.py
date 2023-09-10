@@ -2,13 +2,20 @@ import sys
 sys.path.append('../')
 
 import numpy as np
-from doatools.model.arrays import GridBasedArrayDesign
-from doatools.model.coarray import WeightFunction1D
+from doatools.model.signals import ChirpSignal
+import matplotlib.pyplot as plt
 
-array_indice = np.array([0, 1, 4]).reshape(-1, 1)
-array = GridBasedArrayDesign(indices=array_indice, d0=1)
+f0 = (20, 30)
+f1 = (40, 50)
+fs = 4 * 50
 
-weight_fun = WeightFunction1D(array=array)
+chr = ChirpSignal(dim=2)
+s = chr.emit(500, f0=f0, f1=f1, fs=fs)
 
-print(weight_fun.get_coarray_selection_matrix())
+spectrum = np.fft.fftshift(np.fft.fft(s[0, :]))
+f = np.arange(-fs/2, fs/2, fs/spectrum.size)
+
+# plt.plot(t, w)
+plt.plot(f, np.abs(spectrum))
+plt.show()
 

@@ -17,7 +17,7 @@ def f_nll_stouc(R, array, sources, wavelength, p, sigma):
 
 class CovarianceBasedMLEstimator(ABC):
     """Abstract base class for covariance based maximum-likelihood estimators.
-    
+
     Args:
         array (~doatools.model.arrays.ArrayDesign): Sensor array design.
         wavelength (float): Wavelength of the carrier wave.
