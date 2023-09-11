@@ -146,9 +146,10 @@ class PeriodicChirpSignal(SignalGenerator):
         each column represents a sample.
 
         Args:
-            f0 (float): start frequency of chirp signal.
-            f1 (float): end frequency of chirp signal.
-            t1 (int): how much time it takes to reach f1 from f0 (seconds)
+            f0 (tuple | np.array): start frequency of every chirp signal.
+            f1 (tuple | np.array): end frequency of every chirp signal.
+            t1 (tuple | np.array): how much time it takes to reach f1 from f0
+                for every cirp signal.
             s_start (int): time point when sampling of chirp signal start.
             s_period (int): the period of time the sampling lasts. `s_period`
                 should be no less than `t1`.
@@ -168,17 +169,35 @@ class PeriodicChirpSignal(SignalGenerator):
             raise ValueError("Sampling of chirp signal should start after time\
                               0.")
         # if the sampling time period less than t1, we can not get a full
-        # frequency sweept from f0 to f1
-        if s_period < t1:
-            s_period = s_start + t1
+        # frequency swept from f0 to f1
+        if s_period < max(t1):
+            raise ValueError("Sampling period less than t1, can't sweep full\
+                              frequency range.")
 
-        signal = np.zeros((self._dim, t.size))
+        signal = np.zeros((self._dim, s_period * fs))
         # generate sampled chirp signal
-        for i in np.arange(self._dim):
+        for dim_i in range(self._dim):
             # 1. sampling from s_start to t1
-            time_1 = np.arange(s_start, t1, 1 / fs)
-            s1 = chirp(t=time_1, f0=f0[i], f1=f1[i], t1=t1,
+            time_1 = np.arange(s_start, t1[dim_i], 1 / fs)
+            s = chirp(t=time_1, f0=f0[dim_i], f1=f1[dim_i], t1=t1[dim_i],
                                  method=method)
             # 2. sampling every full periods after t1
-            period_num = (s_period - (t1 - s_start)) / t1
+            period_num = (s_period - (t1[dim_i] - s_start)) // t1[dim_i]
+            if period_num > 0:
+                for i in range(period_num):
+                    s = np.concatenate((s, chirp(t=np.arange(0,t1[dim_i], 1/fs),
+                                                 f0=f0[dim_i],
+                                                 t1=t1[dim_i],
+                                                 f1=f1[dim_i],
+                                                 method=method)))
+            # 3. sampling remainder
+            remainder = (s_period - (t1[dim_i] - s_start)) % t1[dim_i]
+            if remainder > 0:
+                s = np.concatenate((s, chirp(t=np.arange(0, remainder, 1 / fs),
+                                            f0=f0[dim_i],
+                                            t1=t1[dim_i],
+                                            f1=f1[dim_i],
+                                            method=method)))
+            signal[dim_i, :] = s
+
         return self._amplitudes * signal
