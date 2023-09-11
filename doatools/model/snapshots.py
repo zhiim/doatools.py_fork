@@ -58,7 +58,7 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
     else:
         return matrix_y
 
-def get_wideband_snapshots(array, source, wavelength, source_signal,
-                           noise_signal=None, n_snapshot=1,
-                           return_covariance=False):
+# def get_wideband_snapshots(array, source, wavelength, source_signal,
+#                            noise_signal=None, n_snapshot=1,
+#                            return_covariance=False):
         

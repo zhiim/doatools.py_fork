@@ -110,9 +110,9 @@ class RandomPhaseSignal(SignalGenerator):
         c += np.cos(phases)
         return self._amplitudes * c
 
-class ChirpSignal(SignalGenerator):
-    """Generate chirp signal (Frequency-swept signal) as the incident signal in
-    wideband DOA estimation.
+class PeriodicChirpSignal(SignalGenerator):
+    """Generate periodic chirp signal (Frequency-swept signal) as the incident
+    signal in wideband DOA estimation.
 
     Args:
         dim (int): Dimension of the signal (usually equal to the number of
@@ -141,14 +141,17 @@ class ChirpSignal(SignalGenerator):
     def dim(self):
         return self._dim
 
-    def emit(self, n, f0, f1, fs=None, method='linear'):
+    def emit(self, f0, f1, t1, s_start, s_period, fs=None, method='linear'):
         """Generates a k x n matrix where k is the dimension of the signal and
         each column represents a sample.
 
         Args:
-            n (int): number of snapshot.
             f0 (float): start frequency of chirp signal.
             f1 (float): end frequency of chirp signal.
+            t1 (int): how much time it takes to reach f1 from f0 (seconds)
+            s_start (int): time point when sampling of chirp signal start.
+            s_period (int): the period of time the sampling lasts. `s_period`
+                should be no less than `t1`.
             fs (float, optional): sampling frequency (at least twice the maxim-
                 um of f0 and f1). Defaults to twice the maximum of f0 and f1.
             method (str, optional): kind of frequency sweep, can be specified as
@@ -161,13 +164,21 @@ class ChirpSignal(SignalGenerator):
         # if fs is not specified, set fs to twice the maximum of f0 and f1
         if fs is None:
             fs = 2 * max(max(f0), max(f1))
+        if s_start < 0:
+            raise ValueError("Sampling of chirp signal should start after time\
+                              0.")
+        # if the sampling time period less than t1, we can not get a full
+        # frequency sweept from f0 to f1
+        if s_period < t1:
+            s_period = s_start + t1
 
-        # time the signal will be sample
-        t = np.arange(n) * 1 / fs
-
-        signal = np.zeros((self._dim, n))
+        signal = np.zeros((self._dim, t.size))
         # generate sampled chirp signal
         for i in np.arange(self._dim):
-            signal[i, :] = chirp(t=t, f0=f0[i], f1=f1[i], t1=t[-1],
+            # 1. sampling from s_start to t1
+            time_1 = np.arange(s_start, t1, 1 / fs)
+            s1 = chirp(t=time_1, f0=f0[i], f1=f1[i], t1=t1,
                                  method=method)
+            # 2. sampling every full periods after t1
+            period_num = (s_period - (t1 - s_start)) / t1
         return self._amplitudes * signal

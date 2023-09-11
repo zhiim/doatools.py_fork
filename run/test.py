@@ -2,20 +2,23 @@ import sys
 sys.path.append('../')
 
 import numpy as np
-from doatools.model.signals import ChirpSignal
+from scipy.signal import chirp
 import matplotlib.pyplot as plt
 
-f0 = (20, 30)
-f1 = (40, 50)
-fs = 4 * 50
+f0 = 20
+f1 = 40
+t1 = 10
+fs = 4 * f1
+t = np.arange(5, 15, 1/fs)
 
-chr = ChirpSignal(dim=2)
-s = chr.emit(500, f0=f0, f1=f1, fs=fs)
+s = chirp(t, f0, t1, f1)
 
-spectrum = np.fft.fftshift(np.fft.fft(s[0, :]))
-f = np.arange(-fs/2, fs/2, fs/spectrum.size)
+S = np.fft.fftshift(np.fft.fft(s))
+f = np.arange(-fs/2, fs/2, fs/t.size)
 
-# plt.plot(t, w)
-plt.plot(f, np.abs(spectrum))
+plt.figure(1)
+plt.plot(t, s)
+plt.figure(2)
+plt.plot(f, np.abs(S))
 plt.show()
 
