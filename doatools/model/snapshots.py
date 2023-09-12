@@ -1,4 +1,5 @@
 import numpy as np
+from .sources import FarField1DSourcePlacement, FarField2DSourcePlacement
 
 def get_narrowband_snapshots(array, sources, wavelength, source_signal,
                              noise_signal=None, n_snapshots=1,
@@ -58,7 +59,40 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
     else:
         return matrix_y
 
-# def get_wideband_snapshots(array, source, wavelength, source_signal,
-#                            noise_signal=None, n_snapshot=1,
-#                            return_covariance=False):
-        
+def get_wideband_snapshots(array, source, source_signal,
+                           noise_signal=None, n_snapshot=1,
+                           return_covariance=False):
+    c = 3e8  # wave speed
+    num_element = array.size  # number of array elements
+    array_location = array.actual_element_locations
+    num_source = source.size
+    if source.units[0] == 'deg':
+        source_location = np.deg2rad(source.locations)
+    else:
+        source_location = source.locations
+
+    # if the source is 1D source
+    if isinstance(source, FarField1DSourcePlacement):
+        # if 1D array
+        if array_location.shape[1] == 1:
+            # time delay
+            tau = 1 / c * np.outer(array_location,
+                                    np.sin(source_location))
+        # if 2D or 3D array
+        else:
+            tau = 1/c * (np.outer(array_location[:, 0], np.sin(source_location))
+                      + np.outer(array_location[:, 1], np.cos(source_location)))
+
+    if isinstance(source, FarField2DSourcePlacement):
+        # if 1D array
+        if array_location.shape[1] == 1:
+            # time delay
+            tau = 1 / c * np.outer(array_location,
+                                    np.sin(source_location))
+        # if 2D or 3D array
+        else:
+            tau = 1/c * (np.outer(array_location[:, 0], np.sin(source_location))
+                      + np.outer(array_location[:, 1], np.cos(source_location)))
+
+    array_received = np.zeros((num_element, num_source))
+    for element_i in range(num_element):

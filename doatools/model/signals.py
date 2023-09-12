@@ -117,16 +117,26 @@ class PeriodicChirpSignal(SignalGenerator):
     Args:
         dim (int): Dimension of the signal (usually equal to the number of
             sources).
+        f0 (tuple | np.array): start frequency of every chirp signal.
+        f1 (tuple | np.array): end frequency of every chirp signal.
+        t1 (tuple | np.array): how much time it takes to reach f1 from f0
+            for every cirp signal.
+        s_period (int): the period of time the sampling lasts. `s_period`
+            should be no less than `t1`.
         amplitudes: Amplitudes of the signal. Can be specified by
 
             1. A scalar if all sources have the same amplitude.
             2. A vector if the sources have different amplitudes.
+        method (str, optional): kind of frequency sweep, can be specified as
+            {'linear', 'quadratic', 'logarithmic', 'hyperbolic'}. Defaults
+            to 'linear'.
 
     Raises:
         ValueError: `amplitudes` has a wrong dimension which isn't match with
             `dim`
     """
-    def __init__(self, dim, amplitudes=1.0):
+    def __init__(self, dim, f0, f1, t1, s_period, amplitudes=1.0,
+                 method='linear'):
         self._dim = dim
 
         if np.isscalar(amplitudes):
@@ -137,67 +147,68 @@ class PeriodicChirpSignal(SignalGenerator):
                                   value of 'dim'.")
             self._amplitudes = amplitudes.reshape((-1, 1))
 
+        # if the sampling time period less than t1, we can not get a full
+        # frequency swept from f0 to f1
+        if s_period < max(t1):
+            raise ValueError("Sampling period less than t1, can't sweep full\
+                              frequency range.")
+        self._f0 = f0
+        self._f1 = f1
+        self._t1 = t1
+        self._s_period = s_period
+        self._method = method
+
     @property
     def dim(self):
         return self._dim
 
-    def emit(self, f0, f1, t1, s_start, s_period, fs=None, method='linear'):
+    def emit(self, s_start=0, fs=None):
         """Generates a k x n matrix where k is the dimension of the signal and
         each column represents a sample.
 
         Args:
-            f0 (tuple | np.array): start frequency of every chirp signal.
-            f1 (tuple | np.array): end frequency of every chirp signal.
-            t1 (tuple | np.array): how much time it takes to reach f1 from f0
-                for every cirp signal.
             s_start (int): time point when sampling of chirp signal start.
-            s_period (int): the period of time the sampling lasts. `s_period`
-                should be no less than `t1`.
             fs (float, optional): sampling frequency (at least twice the maxim-
                 um of f0 and f1). Defaults to twice the maximum of f0 and f1.
-            method (str, optional): kind of frequency sweep, can be specified as
-                {'linear', 'quadratic', 'logarithmic', 'hyperbolic'}. Defaults
-                to 'linear'.
 
         Returns:
             numpy.ndarray: sampled chirp signals.
         """
         # if fs is not specified, set fs to twice the maximum of f0 and f1
         if fs is None:
-            fs = 2 * max(max(f0), max(f1))
+            fs = 2 * max(max(self._f0), max(self._f1))
         if s_start < 0:
             raise ValueError("Sampling of chirp signal should start after time\
                               0.")
-        # if the sampling time period less than t1, we can not get a full
-        # frequency swept from f0 to f1
-        if s_period < max(t1):
-            raise ValueError("Sampling period less than t1, can't sweep full\
-                              frequency range.")
 
-        signal = np.zeros((self._dim, s_period * fs))
+        signal = np.zeros((self._dim, self._s_period * fs))
         # generate sampled chirp signal
         for dim_i in range(self._dim):
             # 1. sampling from s_start to t1
-            time_1 = np.arange(s_start, t1[dim_i], 1 / fs)
-            s = chirp(t=time_1, f0=f0[dim_i], f1=f1[dim_i], t1=t1[dim_i],
-                                 method=method)
+            time_1 = np.arange(s_start, self._t1[dim_i], 1 / fs)
+            s = chirp(t=time_1, f0=self._f0[dim_i], f1=self._f1[dim_i],
+                                 t1=self._t1[dim_i],
+                                 method=self._method)
             # 2. sampling every full periods after t1
-            period_num = (s_period - (t1[dim_i] - s_start)) // t1[dim_i]
+            period_num = (self._s_period - (self._t1[dim_i] - s_start)) //\
+                  self._t1[dim_i]
             if period_num > 0:
                 for i in range(period_num):
-                    s = np.concatenate((s, chirp(t=np.arange(0,t1[dim_i], 1/fs),
-                                                 f0=f0[dim_i],
-                                                 t1=t1[dim_i],
-                                                 f1=f1[dim_i],
-                                                 method=method)))
+                    s = np.concatenate((s, chirp(t=np.arange(0, self._t1[dim_i],
+                                                             1/fs),
+                                                 f0=self._f0[dim_i],
+                                                 t1=self._t1[dim_i],
+                                                 f1=self._f1[dim_i],
+                                                 method=self._method)))
             # 3. sampling remainder
-            remainder = (s_period - (t1[dim_i] - s_start)) % t1[dim_i]
+            remainder = (self._s_period - (self._t1[dim_i] - s_start)) %\
+                        self._t1[dim_i]
             if remainder > 0:
                 s = np.concatenate((s, chirp(t=np.arange(0, remainder, 1 / fs),
-                                            f0=f0[dim_i],
-                                            t1=t1[dim_i],
-                                            f1=f1[dim_i],
-                                            method=method)))
+                                            f0=self._f0[dim_i],
+                                            t1=self._t1[dim_i],
+                                            f1=self._f1[dim_i],
+                                            method=self._method)))
             signal[dim_i, :] = s
 
         return self._amplitudes * signal

@@ -19,6 +19,8 @@ n_snapshots = 100
 # Create a 12-element ULA
 ula = model.UniformLinearArray(12, d0)
 
+print(ula.actual_element_locations)
+
 # Place 7 far-field narrow-band sources uniformly between (-pi/4, pi/4)
 sources = model.FarField1DSourcePlacement(np.linspace(-np.pi/4, np.pi/4, 5))
 
