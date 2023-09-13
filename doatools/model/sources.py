@@ -380,8 +380,8 @@ class FarField2DSourcePlacement(SourcePlacement):
     """Creates a far-field 2D source placement.
 
     Far-field 2D sources are represented by azimuth and elevation angles. The
-    azimuth angles start from the x-axis and the elevation angles are measured
-    with respect to the xy-plane.
+    azimuth angles start from the x-axis (different from 1D source) and the ele-
+    vation angles are measured with respect to the xy-plane.
 
     Args:
         locations: An k x 2 numpy array representing the source locations,

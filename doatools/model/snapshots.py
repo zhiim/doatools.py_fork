@@ -49,9 +49,12 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
     matrix_a = array.steering_matrix(sources, wavelength)  # steering matrix
     matrix_s = source_signal.emit(n_snapshots)  # sources
     matrix_y = matrix_a @ matrix_s
+    print(np.mean(np.abs(matrix_y[1, :]) ** 2))
     if noise_signal is not None:
         matrix_n = noise_signal.emit(n_snapshots)  # noise
+        print(np.mean(np.abs(matrix_n[1, :]) ** 2))
         matrix_y += matrix_n
+    print(np.mean(np.abs(matrix_y[1, :]) ** 2))
     if return_covariance:
         # covariance matirx
         matrix_r = (matrix_y @ matrix_y.conj().T) / n_snapshots
@@ -60,12 +63,14 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
         return matrix_y
 
 def get_wideband_snapshots(array, source, source_signal,
-                           noise_signal=None, n_snapshot=1,
+                           add_noise=False, snr=0,
                            return_covariance=False):
     c = 3e8  # wave speed
     num_element = array.size  # number of array elements
     array_location = array.actual_element_locations
     num_source = source.size
+    num_snapshot = source_signal.num_snapshot
+
     if source.units[0] == 'deg':
         source_location = np.deg2rad(source.locations)
     else:
@@ -83,16 +88,44 @@ def get_wideband_snapshots(array, source, source_signal,
             tau = 1/c * (np.outer(array_location[:, 0], np.sin(source_location))
                       + np.outer(array_location[:, 1], np.cos(source_location)))
 
+    # compute time delay of each source received by each antenna
     if isinstance(source, FarField2DSourcePlacement):
         # if 1D array
         if array_location.shape[1] == 1:
-            # time delay
+            # Linear arrays are assumed to be placed along the x-axis
+            # Need to convert azimuth-elevation pairs to broadside angles.
             tau = 1 / c * np.outer(array_location,
-                                    np.sin(source_location))
+                np.cos(source_location[:, 1]) * np.cos(source_location[:, 0]))
+
         # if 2D or 3D array
         else:
-            tau = 1/c * (np.outer(array_location[:, 0], np.sin(source_location))
-                      + np.outer(array_location[:, 1], np.cos(source_location)))
+            # Notes: the sum of outer products can also be rewritten using
+            # matrix multiplications.
+            cc = np.cos(source_location[:, 1]) * np.cos(source_location[:, 0])
+            cs = np.cos(source_location[:, 1]) * np.sin(source_location[:, 0])
 
-    array_received = np.zeros((num_element, num_source))
+            # if the array is a 2D array
+            if array_location.shape[1] == 2:
+                tau = 1 / c * (np.outer(array_location[:, 0], cc) +
+                         np.outer(array_location[:, 1], cs))
+            # is the array is a 3D array
+            else:
+                tau = 1 / c * (
+                    np.outer(array_location[:, 0], cc)
+                    + np.outer(array_location[:, 1], cs)
+                    + np.outer(array_location[:, 2],
+                               np.sin(source_location[:, 1]))
+                                )
+
+    array_received = np.zeros((num_element, num_snapshot))
     for element_i in range(num_element):
+        # signal received by ith antenna with time delay tau_{m, k}
+        s_tau = source_signal.emit(s_start=tau[element_i, :])
+        # received signal of each antenna is a sum of all K signals
+        for source_i in range(num_source):
+            array_received[element_i, :] += s_tau[source_i, :]
+        # add noise
+        # if add_noise:
+        #     array_received[element_i, :] += source_signal. np.random.randn(1, num_snapshot)
+
+    return array_received

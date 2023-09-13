@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../../')
+sys.path.append('../')
 
 import numpy as np
 import doatools.model as model
@@ -27,20 +27,9 @@ source_signal = model.ComplexStochasticSignal(sources.size, power_source)
 noise_signal = model.ComplexStochasticSignal(ula.size, power_noise)
 
 # Get the estimated covariance matrix.
-_, R = model.get_narrowband_snapshots(ula, sources, wavelength, source_signal,
-                                      noise_signal, n_snapshots,
-                                      return_covariance=True)
+y_n = model.get_narrowband_snapshots(ula, sources, wavelength, source_signal,
+                                      noise_signal=noise_signal,
+                                      n_snapshots=n_snapshots,
+                                      return_covariance=False)
 
-# Create a MUSIC-based estimator.
-grid = estimation.FarField1DSearchGrid()
-estimator = estimation.MUSIC(ula, wavelength, grid)
-
-# Get the estimates.
-resolved, estimates, sp = estimator.estimate(R, sources.size,
-                                             return_spectrum=True)
-print('Estimates: {0}'.format(estimates.locations))
-print('Ground truth: {0}'.format(sources.locations))
-
-# Plot the MUSIC-spectrum.
-doaplot.plot_spectrum({'MUSIC': sp}, grid, estimates=estimates, ground_truth=sources,
-                      use_log_scale=True)
+print(np.mean(np.abs(y_n[1, :]) ** 2))
