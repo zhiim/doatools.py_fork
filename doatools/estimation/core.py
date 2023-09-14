@@ -239,3 +239,21 @@ class SpectrumBasedEstimatorBase(ABC):
                 peak_coord = np.unravel_index(i_max, g.shape)
                 subgrids[i] = g.create_refined_grid_at(peak_coord,
                                                        density=density)
+
+    def _spatial_spectrum(self, f_sp):
+        """Comput spatial spectrum.
+
+        Args:
+            f_sp: A callable object that accepts the atom matrix as the
+                parameter and return a 1D numpy array representing the computed
+                spectrum.
+
+        Returns:
+            spectrum (ndarray): A numpy array of the same shape of the
+                specified search grid, consisting of values evaluated at the
+                grid points. Only present if `return_spectrum` is True.
+        """
+        sp = f_sp(self._get_atom_matrix())
+        # Restores the shape of the spectrum.
+        sp = sp.reshape(self._search_grid.shape)
+        return sp

@@ -93,6 +93,26 @@ class MUSIC(SpectrumBasedEstimatorBase):
         En = get_noise_subspace(R, k)
         return self._estimate(lambda A: f_music(A, En), k, **kwargs)
 
+    def get_spatial_spectrum(self, matrix_r, k):
+        """Compute spatial spectrum using MUSIC algorithm.
+
+        Args:
+            matirx_r (~numpy.ndarray): Covariance matrix input. The size of R
+                must match that of the array design used when creating this
+                estimator.
+            k (int): Expected number of sources.
+
+        Returns:
+            spectrum (:class:`~numpy.ndarray`): An numpy array of the same
+                shape of the specified search grid, consisting of values evalua-
+                ted at the grid points. Only present if ``return_spectrum`` is
+                ``True``.
+        """
+        ensure_covariance_size(matrix_r, self._array)
+        matrix_en = get_noise_subspace(matrix_r, k)
+        return self._spatial_spectrum(lambda matrix_a: f_music(matrix_a,
+                                                               matrix_en))
+
 class RootMUSIC1D:
     """Creates a root-MUSIC estimator for uniform linear arrays.
 

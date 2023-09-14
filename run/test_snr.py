@@ -28,8 +28,9 @@ noise_signal = model.ComplexStochasticSignal(ula.size, power_noise)
 
 # Get the estimated covariance matrix.
 y_n = model.get_narrowband_snapshots(ula, sources, wavelength, source_signal,
-                                      noise_signal=noise_signal,
+                                    #   noise_signal=noise_signal,
                                       n_snapshots=n_snapshots,
                                       return_covariance=False)
 
 print(np.mean(np.abs(y_n[1, :]) ** 2))
+print(np.mean(np.abs(y_n) ** 2))

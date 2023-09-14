@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from scipy.linalg import sqrtm
 from scipy.signal import chirp
+from scipy.linalg import sqrtm
 from ..utils.math import randcn
 
 class SignalGenerator(ABC):
@@ -170,13 +170,19 @@ class PeriodicChirpSignal(SignalGenerator):
         return self._dim
 
     @property
+    def fs(self):
+        """Sampling frequency of signal.
+        """
+        return self._fs
+
+    @property
     def num_snapshot(self):
         """Number of snapshot under sampling frequency of `fs` in `s_period`
 
         Returns:
             int: number of snapshot
         """
-        return self._s_period * self._fs
+        return int(self._s_period * self._fs)
 
     def emit(self, s_start=None):
         """Generates a k x n matrix where k is the dimension of the signal and
@@ -190,28 +196,32 @@ class PeriodicChirpSignal(SignalGenerator):
             numpy.ndarray: sampled chirp signals.
         """
         if s_start is None:
-            s_start = np.zeros((1, self._dim))
+            s_start = np.zeros(self._dim)
 
-        # number of sampling points in `s_period`
-        num_snapshot = self._s_period * self._fs
+        # number of sampling points during `s_period`
+        num_snapshot = int(self._s_period * self._fs)
         signal = np.zeros((self._dim, num_snapshot))
 
-        # generate sampled periodic chirp signal
+        # generate sampled periodic chirp signal one by one
         for dim_i in range(self._dim):
             if s_start[dim_i] >= self._t1[dim_i]:
                 s_start[dim_i] = s_start[dim_i] % self._t1[dim_i]
+            # number of sampling points during t1
+            num_snapshot_t1 = int(self._t1[dim_i] * self._fs)
 
             # 1. sampling from s_start to t1
-            time_1 = np.arange(s_start[dim_i], self._t1[dim_i], 1 / self._fs)
-            s = chirp(t=time_1, f0=self._f0[dim_i], f1=self._f1[dim_i],
+            # number of sampling points from s_start to t1
+            num_snapshot_1 = (self._t1[dim_i] - s_start[dim_i]) * self._fs
+            s = chirp(t=np.arange(0, num_snapshot_1) / self._fs,
+                                 f0=self._f0[dim_i],
+                                 f1=self._f1[dim_i],
                                  t1=self._t1[dim_i],
                                  method=self._method)
             # 2. sampling every full periods after t1
             # how many full signal periods will be covered in `s_period`
-            period_num = (self._s_period - (self._t1[dim_i] - s_start[dim_i]))\
-                  // self._t1[dim_i]
+            period_num = (num_snapshot - num_snapshot_1) // num_snapshot_t1
             if period_num > 0:
-                for i in range(period_num):
+                for i in range(int(period_num)):
                     s = np.concatenate((s, chirp(t=np.arange(0, self._t1[dim_i],
                                                              1 / self._fs),
                                                  f0=self._f0[dim_i],
@@ -219,7 +229,8 @@ class PeriodicChirpSignal(SignalGenerator):
                                                  f1=self._f1[dim_i],
                                                  method=self._method)))
             # 3. sampling remainder
-            remainder = num_snapshot - time_1.size
+            remainder = (num_snapshot - num_snapshot_1\
+                          - period_num * num_snapshot_t1)
             if remainder > 0:
                 s = np.concatenate((s, chirp(t=np.arange(0, remainder)/self._fs,
                                             f0=self._f0[dim_i],

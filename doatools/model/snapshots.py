@@ -49,12 +49,9 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
     matrix_a = array.steering_matrix(sources, wavelength)  # steering matrix
     matrix_s = source_signal.emit(n_snapshots)  # sources
     matrix_y = matrix_a @ matrix_s
-    print(np.mean(np.abs(matrix_y[1, :]) ** 2))
     if noise_signal is not None:
         matrix_n = noise_signal.emit(n_snapshots)  # noise
-        print(np.mean(np.abs(matrix_n[1, :]) ** 2))
         matrix_y += matrix_n
-    print(np.mean(np.abs(matrix_y[1, :]) ** 2))
     if return_covariance:
         # covariance matirx
         matrix_r = (matrix_y @ matrix_y.conj().T) / n_snapshots
@@ -125,7 +122,10 @@ def get_wideband_snapshots(array, source, source_signal,
         for source_i in range(num_source):
             array_received[element_i, :] += s_tau[source_i, :]
         # add noise
-        # if add_noise:
-        #     array_received[element_i, :] += source_signal. np.random.randn(1, num_snapshot)
+        if add_noise:
+            signal_power = np.mean(np.abs(array_received[element_i, :]) ** 2)
+            array_received[element_i, :] += np.sqrt(
+                                            signal_power / (10 ** (snr / 10)))\
+                                            * np.random.randn(1, num_snapshot)
 
     return array_received
