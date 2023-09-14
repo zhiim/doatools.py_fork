@@ -229,8 +229,7 @@ class PeriodicChirpSignal(SignalGenerator):
                                                  f1=self._f1[dim_i],
                                                  method=self._method)))
             # 3. sampling remainder
-            remainder = (num_snapshot - num_snapshot_1\
-                          - period_num * num_snapshot_t1)
+            remainder = (num_snapshot - s.size)
             if remainder > 0:
                 s = np.concatenate((s, chirp(t=np.arange(0, remainder)/self._fs,
                                             f0=self._f0[dim_i],

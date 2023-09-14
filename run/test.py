@@ -22,7 +22,7 @@ fs = 2 * f_end
 d0 = 3e8 / f_end / 2
 ula = UniformLinearArray(n=3, d0=d0)
 
-source = FarField1DSourcePlacement([-np.pi / 6, np.pi / 6])
+source = FarField1DSourcePlacement([-np.pi / 3, np.pi / 6])
 
 pcs = PeriodicChirpSignal(dim=2, f0=f0, f1=f1, t1=t1, s_period=s_period, fs=fs)
 
