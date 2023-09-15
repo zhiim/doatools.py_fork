@@ -1,6 +1,6 @@
 import numpy as np
 
-def divide_wideband_into_sub(signal, n_fft, freq_start, freq_end):
+def divide_wideband_into_sub(signal, n_fft, fre_start, fre_end):
     """Divide sampling points of wideband siganl into p groups, than decompose
     wideband signal in every group into lots of narrowband signals using DFT.
 
@@ -19,13 +19,12 @@ def divide_wideband_into_sub(signal, n_fft, freq_start, freq_end):
     num_snapshot = signal.shape[1]
     # divide all sampling points of signal into `num_group` groups,
     # each group has `n_fft` sampling points
-    num_group = num_snapshot - n_fft + 1
+    num_group = num_snapshot // n_fft
 
     # do fft to `n_fft` points in every group
-    signal_spectrum = np.zeros((signal.shape[0], (freq_end - freq_start),
+    signal_spectrum = np.zeros((signal.shape[0], (fre_end - fre_start),
                                 num_group), dtype=np.complex_)
     for group_i in range(num_group):
         # only use fft output within frequency band of signal
-        signal_spectrum[:, :, group_i] = np.fft.fftshift(
-        np.fft.fft(signal[:, group_i: group_i + n_fft]))[:, freq_start: freq_end]
+        signal_spectrum[:, :, group_i] = np.fft.fft(signal[:, group_i * n_fft: (group_i + 1) * n_fft])[:, fre_start: fre_end]
     return signal_spectrum

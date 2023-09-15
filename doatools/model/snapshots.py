@@ -1,6 +1,8 @@
 import numpy as np
 from .sources import FarField1DSourcePlacement, FarField2DSourcePlacement
 
+C = 3e8  # wave speed
+
 def get_narrowband_snapshots(array, sources, wavelength, source_signal,
                              noise_signal=None, n_snapshots=1,
                              return_covariance=False):
@@ -62,7 +64,7 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
 def get_wideband_snapshots(array, source, source_signal,
                            add_noise=False, snr=0,
                            return_covariance=False):
-    c = 3e8  # wave speed
+    c = 3e8
     num_element = array.size  # number of array elements
     array_location = array.actual_element_locations
     num_source = source.size
@@ -114,7 +116,7 @@ def get_wideband_snapshots(array, source, source_signal,
                                np.sin(source_location[:, 1]))
                                 )
 
-    array_received = np.zeros((num_element, num_snapshot))
+    array_received = np.zeros((num_element, num_snapshot), dtype=np.complex_)
     for element_i in range(num_element):
         # signal received by ith antenna with time delay tau_{m, k}
         s_tau = source_signal.emit(s_start=tau[element_i, :])
