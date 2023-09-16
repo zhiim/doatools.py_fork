@@ -62,9 +62,25 @@ def get_narrowband_snapshots(array, sources, wavelength, source_signal,
         return matrix_y
 
 def get_wideband_snapshots(array, source, source_signal,
-                           add_noise=False, snr=0,
-                           return_covariance=False):
-    c = 3e8
+                           add_noise=False, snr=0):
+    """Generate sampled wideband signal received by array antenna, based on the
+    signal model of array antenna, in which every signal received by different
+    antennas has different time delays.
+
+    Args:
+        array (~doatools.model.arrays.ArrayDesign): The array receiving the
+            snapshots.
+        sources (~doatools.model.sources.SourcePlacement): Source placement.
+        source_signal (~doatools.model.signals.SignalGenerator):
+            Source signal generator.
+        add_noise (bool, optional): Add Gaussian white noise to signal or not.
+            Defaults to False.
+        snr (int, optional): Signal-to-noise ratio. Defaults to 0.
+
+    Returns:
+        np.array: a m*n matrix as the received signal of every antenna element,
+            where m is the number of antennas and n is the number of snapshots.
+    """
     num_element = array.size  # number of array elements
     array_location = array.actual_element_locations
     num_source = source.size
@@ -80,11 +96,11 @@ def get_wideband_snapshots(array, source, source_signal,
         # if 1D array
         if array_location.shape[1] == 1:
             # time delay
-            tau = 1 / c * np.outer(array_location,
+            tau = 1 / C * np.outer(array_location,
                                     np.sin(source_location))
         # if 2D or 3D array
         else:
-            tau = 1/c * (np.outer(array_location[:, 0], np.sin(source_location))
+            tau = 1/C * (np.outer(array_location[:, 0], np.sin(source_location))
                       + np.outer(array_location[:, 1], np.cos(source_location)))
 
     # compute time delay of each source received by each antenna
@@ -93,7 +109,7 @@ def get_wideband_snapshots(array, source, source_signal,
         if array_location.shape[1] == 1:
             # Linear arrays are assumed to be placed along the x-axis
             # Need to convert azimuth-elevation pairs to broadside angles.
-            tau = 1 / c * np.outer(array_location,
+            tau = 1 / C * np.outer(array_location,
                 np.cos(source_location[:, 1]) * np.cos(source_location[:, 0]))
 
         # if 2D or 3D array
@@ -105,11 +121,11 @@ def get_wideband_snapshots(array, source, source_signal,
 
             # if the array is a 2D array
             if array_location.shape[1] == 2:
-                tau = 1 / c * (np.outer(array_location[:, 0], cc) +
+                tau = 1 / C * (np.outer(array_location[:, 0], cc) +
                          np.outer(array_location[:, 1], cs))
             # is the array is a 3D array
             else:
-                tau = 1 / c * (
+                tau = 1 / C * (
                     np.outer(array_location[:, 0], cc)
                     + np.outer(array_location[:, 1], cs)
                     + np.outer(array_location[:, 2],
@@ -126,8 +142,9 @@ def get_wideband_snapshots(array, source, source_signal,
         # add noise
         if add_noise:
             signal_power = np.mean(np.abs(array_received[element_i, :]) ** 2)
+            # add gaussian noise
             array_received[element_i, :] += np.sqrt(
                                             signal_power / (10 ** (snr / 10)))\
-                                            * np.random.randn(1, num_snapshot)
+                                            * np.random.randn(num_snapshot)
 
     return array_received

@@ -24,13 +24,13 @@ s_period = max(t1)
 
 d0 = 3e8 / f_end / 2
 
-ula = UniformLinearArray(n=8, d0=d0)
+ula = UniformLinearArray(n=6, d0=d0)
 
-source = FarField1DSourcePlacement([-np.pi/180 * 60, np.pi / 180 * 5])
+source = FarField1DSourcePlacement([-np.pi/180 * 25, np.pi / 180 * 50])
 
 pcs = PeriodicChirpSignal(dim=2, f0=f0, f1=f1, t1=t1, s_period=s_period, fs=fs)
 
-received = get_wideband_snapshots(array=ula, source=source, source_signal=pcs)
+received = get_wideband_snapshots(array=ula, source=source, source_signal=pcs, add_noise=True, snr=0)
 
 grid = FarField1DSearchGrid()
 estimator = ISSM(array=ula, search_grid=grid)
@@ -40,5 +40,5 @@ num_snapshot = received[0, :].size
 sp = estimator.estimate(received, fs=fs, f_start=f_start, f_end=f_end,
                         n_fft=n_fft, k=2)
 
-plt.plot(np.arange(-90, 90), sp)
+plt.plot(np.arange(-90, 90), np.abs(sp))
 plt.show()

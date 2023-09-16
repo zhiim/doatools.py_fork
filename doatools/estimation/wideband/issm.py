@@ -3,9 +3,14 @@ from .wideband_core import divide_wideband_into_sub
 import numpy as np
 
 class ISSM(MUSIC):
-    def __init__(self, array, search_grid):
-        self._array = array
-        self._search_grid = search_grid
+    def __init__(self, array, search_grid, **kwargs):
+        # we need to specific wavelength for every frequency points,
+        # so
+        wavelength = None
+        super().__init__(array, wavelength, search_grid, **kwargs)
+        # self._array = array
+        # self._search_grid = search_grid
+
 
     def estimate(self, signal, fs, f_start, f_end, n_fft, k):
 

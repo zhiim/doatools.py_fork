@@ -26,5 +26,7 @@ def divide_wideband_into_sub(signal, n_fft, fre_start, fre_end):
                                 num_group), dtype=np.complex_)
     for group_i in range(num_group):
         # only use fft output within frequency band of signal
-        signal_spectrum[:, :, group_i] = np.fft.fft(signal[:, group_i * n_fft: (group_i + 1) * n_fft])[:, fre_start: fre_end]
+        signal_spectrum[:, :, group_i] = np.fft.fft(
+            signal[:, group_i * n_fft: (group_i + 1) * n_fft])\
+                                                    [:, fre_start: fre_end]
     return signal_spectrum
