@@ -5,12 +5,13 @@ import numpy as np
 class ISSM(MUSIC):
     def __init__(self, array, search_grid, **kwargs):
         # we need to specific wavelength for every frequency points,
-        # so
+        # so we'll pass wavelength later
         wavelength = None
-        super().__init__(array, wavelength, search_grid, **kwargs)
-        # self._array = array
-        # self._search_grid = search_grid
 
+        # `enable_caching` should be set to False to recompute atom matrix for
+        # every frequency point
+        super().__init__(array, wavelength, search_grid, enable_caching=False,
+                         **kwargs)
 
     def estimate(self, signal, fs, f_start, f_end, n_fft, k):
 
@@ -28,10 +29,11 @@ class ISSM(MUSIC):
                                      dtype=np.complex_)
         for i, freq in enumerate(freq_bins):
             wavelength = 3e8 / freq
+            self._wavelength = wavelength
             matrix_r = 1 / signal_spectrum.shape[2] *\
                 signal_spectrum[:, i, :] @ signal_spectrum[:, i, :].conj().T
-            music = MUSIC(self._array, wavelength, self._search_grid)
-            spatial_spectrums[i, :] = music.get_spatial_spectrum(matrix_r,
+            # wavelength for every frequency point
+            spatial_spectrums[i, :] = self.get_spatial_spectrum(matrix_r,
                                                                     k)
         spatial_spectrum =  np.sum(spatial_spectrums, axis=0)
         return spatial_spectrum
