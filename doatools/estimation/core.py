@@ -1,20 +1,19 @@
-from collections import namedtuple
-from abc import ABC, abstractmethod
+from abc import ABC
 import numpy as np
 from scipy.signal import find_peaks
 from scipy.ndimage import maximum_filter
 
 # Helper functions for validating inputs.
-def ensure_covariance_size(R, array):
+def ensure_covariance_size(matrix_r, array):
     """Ensures the size of R matches the given array design."""
     m = array.size
-    if R.ndim != 2:
+    if matrix_r.ndim != 2:
         raise ValueError('Expecting a matrix.')
-    if R.shape[0] != m or R.shape[0] != m:
+    if matrix_r.shape[0] != m or matrix_r.shape[0] != m:
         raise ValueError(
             'The shape of the covariance matrix does not match the array size.'
             'Expected shape is {0}. Got {1}'
-            .format((m, m), R.shape)
+            .format((m, m), matrix_r.shape)
         )
 
 def ensure_n_resolvable_sources(k, max_k):
@@ -113,10 +112,29 @@ class SpectrumBasedEstimatorBase(ABC):
         # Check cached version of the default search grid if possible.
         if self._atom_matrix is not None:
             return self._atom_matrix
-        A = self._compute_atom_matrix(self._search_grid)
+
+        matrix_a = self._compute_atom_matrix(self._search_grid)
         if self._enable_caching:
-            self._atom_matrix = A
-        return A
+            self._atom_matrix = matrix_a
+        return matrix_a
+
+    def _spatial_spectrum(self, f_sp):
+        """Compute spatial spectrum.
+
+        Args:
+            f_sp: A callable object that accepts the atom matrix as the
+                parameter and return a 1D numpy array representing the computed
+                spectrum.
+
+        Returns:
+            spectrum (ndarray): A numpy array of the same shape of the
+                specified search grid, consisting of values evaluated at the
+                grid points. Only present if `return_spectrum` is True.
+        """
+        sp = f_sp(self._get_atom_matrix())
+        # Restores the shape of the spectrum.
+        sp = sp.reshape(self._search_grid.shape)
+        return sp
 
     def _estimate(self, f_sp, k, return_spectrum=False, refine_estimates=False,
                   refinement_density=10, refinement_iters=3):
@@ -157,9 +175,8 @@ class SpectrumBasedEstimatorBase(ABC):
                 specified search grid, consisting of values evaluated at the
                 grid points. Only present if `return_spectrum` is True.
         """
-        sp = f_sp(self._get_atom_matrix())
-        # Restores the shape of the spectrum.
-        sp = sp.reshape(self._search_grid.shape)
+        sp = self._spatial_spectrum(f_sp=f_sp)
+
         # Find peak locations.
         peak_indices = self._peak_finder(sp)
         # The peak finder returns a tuple whose length is at least one. Hence
@@ -239,21 +256,3 @@ class SpectrumBasedEstimatorBase(ABC):
                 peak_coord = np.unravel_index(i_max, g.shape)
                 subgrids[i] = g.create_refined_grid_at(peak_coord,
                                                        density=density)
-
-    def _spatial_spectrum(self, f_sp):
-        """Comput spatial spectrum.
-
-        Args:
-            f_sp: A callable object that accepts the atom matrix as the
-                parameter and return a 1D numpy array representing the computed
-                spectrum.
-
-        Returns:
-            spectrum (ndarray): A numpy array of the same shape of the
-                specified search grid, consisting of values evaluated at the
-                grid points. Only present if `return_spectrum` is True.
-        """
-        sp = f_sp(self._get_atom_matrix())
-        # Restores the shape of the spectrum.
-        sp = sp.reshape(self._search_grid.shape)
-        return sp

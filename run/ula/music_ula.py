@@ -42,5 +42,5 @@ print('Estimates: {0}'.format(estimates.locations))
 print('Ground truth: {0}'.format(sources.locations))
 
 # Plot the MUSIC-spectrum.
-doaplot.plot_spectrum({'MUSIC': sp}, grid, estimates=estimates, ground_truth=sources,
-                      use_log_scale=True)
+doaplot.plot_spectrum({'MUSIC': sp}, grid, estimates=estimates,
+                      ground_truth=sources, use_log_scale=True)

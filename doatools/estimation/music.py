@@ -3,7 +3,7 @@ from ..model.sources import FarField1DSourcePlacement
 from .core import SpectrumBasedEstimatorBase, get_noise_subspace, \
                   ensure_covariance_size, ensure_n_resolvable_sources
 
-def f_music(A, En):
+def f_music(matrix_a, matrix_en):
     r"""Computes the classical MUSIC spectrum
 
     This is a vectorized implementation of the spectrum function:
@@ -14,14 +14,14 @@ def f_music(A, En):
                    \mathbf{E}_\mathrm{n}^H \mathbf{a}(\theta)}
 
     Args:
-        A: m x k steering matrix of candidate direction-of-arrivals, where
-            m is the number of sensors and k is the number of candidate
+        matrix_a: m x k steering matrix of candidate direction-of-arrivals,
+            where m is the number of sensors and k is the number of candidate
             direction-of-arrivals.
-        En: m x d matrix of noise eigenvectors, where d is the dimension of the
-            noise subspace.
+        matrix_en: m x d matrix of noise eigenvectors, where d is the dimension
+            of the noise subspace.
     """
     # @ is a shorthand for matrix multiple
-    v = En.T.conj() @ A
+    v = matrix_en.T.conj() @ matrix_a
     # * is a shorthand for matrix element-wise multiple
     return np.reciprocal(np.absolute(np.sum(v * v.conj(), axis=0)))
     # return np.reciprocal(np.sum(v * v.conj(), axis=0).real)
@@ -50,12 +50,12 @@ class MUSIC(SpectrumBasedEstimatorBase):
     def __init__(self, array, wavelength, search_grid, **kwargs):
         super().__init__(array, wavelength, search_grid, **kwargs)
 
-    def estimate(self, R, k, **kwargs):
+    def estimate(self, matrix_r, k, **kwargs):
         """Estimates the source locations from the given covariance matrix.
 
         Args:
-            R (~numpy.ndarray): Covariance matrix input. The size of R must
-                match that of the array design used when creating this
+            matrix_r (~numpy.ndarray): Covariance matrix input. The size of R
+                must match that of the array design used when creating this
                 estimator.
             k (int): Expected number of sources.
             return_spectrum (bool): Set to ``True`` to also output the spectrum
@@ -88,12 +88,13 @@ class MUSIC(SpectrumBasedEstimatorBase):
               at the grid points. Only present if ``return_spectrum`` is
               ``True``.
         """
-        ensure_covariance_size(R, self._array)
+        ensure_covariance_size(matrix_r, self._array)
         ensure_n_resolvable_sources(k, self._array.size - 1)
-        En = get_noise_subspace(R, k)
-        return self._estimate(lambda A: f_music(A, En), k, **kwargs)
+        matrix_en = get_noise_subspace(matrix_r, k)
+        return self._estimate(lambda matrix_a: f_music(matrix_a, matrix_en), k,
+                              **kwargs)
 
-    def get_spatial_spectrum(self, matrix_r, k):
+    def _spatial_spectrum(self, matrix_r, k):
         """Compute spatial spectrum using MUSIC algorithm.
 
         Args:
@@ -110,7 +111,7 @@ class MUSIC(SpectrumBasedEstimatorBase):
         """
         ensure_covariance_size(matrix_r, self._array)
         matrix_en = get_noise_subspace(matrix_r, k)
-        return self._spatial_spectrum(lambda matrix_a: f_music(matrix_a,
+        return super()._spatial_spectrum(lambda matrix_a: f_music(matrix_a,
                                                                matrix_en))
 
 class RootMUSIC1D:

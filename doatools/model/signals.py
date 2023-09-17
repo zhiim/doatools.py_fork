@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from scipy.linalg import sqrtm
-from scipy.signal import chirp
 from ..utils.math import randcn
 
 class SignalGenerator(ABC):
