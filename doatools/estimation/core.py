@@ -34,7 +34,7 @@ def find_peaks_simple(x):
         y = maximum_filter(x, 3)
         return np.where(x == y)
 
-def get_noise_subspace(R, k):
+def get_noise_subspace(matrix_r, k):
     """
     Gets the noise eigenvectors.
 
@@ -42,9 +42,10 @@ def get_noise_subspace(R, k):
         R: Covariance matrix.
         k: Number of sources.
     """
-    _, E = np.linalg.eigh(R)
+    # a covariance matrix is always a hermitian matrix (even symmetric matrix)
+    _, matrix_e = np.linalg.eigh(matrix_r)
     # Note: eigenvalues are sorted in ascending order.
-    return E[:,:-k]
+    return matrix_e[:,:-k]
 
 class SpectrumBasedEstimatorBase(ABC):
 

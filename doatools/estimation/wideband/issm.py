@@ -25,16 +25,9 @@ class ISSM(MUSIC):
 
     def _spatial_spectrum(self, signal, fs, f_start, f_end, n_fft, k):
         """Compute spatial spectrum."""
-        # index of start frequency point of signal band in fft output
-        f_start_index = int(f_start / (fs / n_fft))
-        # index of end frequency point of signal band in fft output
-        f_end_index = int(f_end / (fs / n_fft))
-
-        signal_spectrum = divide_wideband_into_sub(signal, n_fft, f_start_index,
-                                                   f_end_index)
-        # frequency points of narrowband signals
-        freq_bins = np.linspace(f_start, f_end,
-                                (f_end_index - f_start_index))
+        # divide wideband signal into frequency points
+        signal_subs, freq_bins = divide_wideband_into_sub(signal, n_fft, fs,
+                                                          f_start, f_end)
 
         spatial_spectrums = np.zeros((n_fft, self._search_grid.size),
                                      dtype=np.complex_)
@@ -43,8 +36,8 @@ class ISSM(MUSIC):
             self._wavelength = wavelength
 
             # compute covariance matrix under every frequency points
-            matrix_r = 1 / signal_spectrum.shape[2] *\
-                signal_spectrum[:, i, :] @ signal_spectrum[:, i, :].conj().T
+            matrix_r = 1 / signal_subs.shape[2] *\
+                signal_subs[:, i, :] @ signal_subs[:, i, :].conj().T
 
             # compute spatial spectrum under every frequency points
             spatial_spectrums[i, :] = super()._spatial_spectrum(matrix_r,
