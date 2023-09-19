@@ -111,8 +111,8 @@ class MUSIC(SpectrumBasedEstimatorBase):
         """
         ensure_covariance_size(matrix_r, self._array)
         matrix_en = get_noise_subspace(matrix_r, k)
-        return super()._spatial_spectrum(lambda matrix_a: f_music(matrix_a,
-                                                               matrix_en))
+        return super()._compute_spatial_spectrum(lambda matrix_a:\
+                                                 f_music(matrix_a, matrix_en))
 
 class RootMUSIC1D:
     """Creates a root-MUSIC estimator for uniform linear arrays.

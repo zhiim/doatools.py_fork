@@ -33,7 +33,7 @@ def _build_spectrum_list(sp, grid):
     return sp_list
 
 def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
-                     use_log_scale=False, discrete=False):
+                     use_log_scale=False, plot_in_deg=False, discrete=False):
     """Plots a 1D spectrum or multiple 1D spectra.
 
     Args:
@@ -73,6 +73,8 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
     # Preprocess the sp input
     sp_list = _build_spectrum_list(sp, grid)
     x = grid.axes[0]  # grids in x axes
+    if plot_in_deg:
+        x = x / np.pi * 180
     has_legend = False
     # 'C3' and 'C2' are reserved for estimates and ground truth
     color_estimates = 'C3'
@@ -105,6 +107,8 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
             raise ValueError('The unit of estimates does not match that of the\
                              search grid.')
         x_est = estimates.locations
+        if plot_in_deg:
+            x_est = x_est / np.pi * 180
         y_est = np.ones(x_est.shape)
         container_est = ax.stem(x_est, y_est, '--', markerfmt='x',
                                 basefmt=' ', label='Estimates')
@@ -117,6 +121,8 @@ def plot_spectrum_1d(sp, grid, ax, estimates=None, ground_truth=None,
             raise ValueError('The unit of ground truth does not match that of\
                              the search grid.')
         x_truth = ground_truth.locations
+        if plot_in_deg:
+            x_truth = x_truth / np.pi * 180
         y_truth = np.ones(x_truth.shape)
         container_truth = ax.stem(x_truth, y_truth, '--', markerfmt='o',
                                   basefmt=' ', label='Ground truth')

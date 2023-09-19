@@ -44,4 +44,5 @@ if resolved:
     print('Estimates: {0}'.format(estimates.locations))
     print('Ground truth: {0}'.format(sources.locations))
     plot_spectrum({'ISSM': np.abs(sp)}, grid, estimates=estimates,
-                        ground_truth=sources, use_log_scale=True)
+                        ground_truth=sources, use_log_scale=True,
+                        plot_in_deg=True)

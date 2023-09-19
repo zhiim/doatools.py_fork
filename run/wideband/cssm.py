@@ -21,14 +21,16 @@ s_period = max(t1)  # 采样时长
 
 f_start = min(f0)
 f_end = max(f1)
+# f_start = 5e6
+# f_end = 16e6
 fs = 2 * f_end  # 采样频率
 d0 = 3e8 / f_end / 2  # 阵元间距
 
-pre_estimate = np.array([-29.5, -29.6, 28.6, 29.6]) * (np.pi / 180)
+pre_estimate = np.array([-29.1, 39.6]) * (np.pi / 180)
 
 n_fft = 512  # issm算法 进行FFT的点数
 
-ula = UniformLinearArray(n=8, d0=d0)  # 6阵元的均匀线阵
+ula = UniformLinearArray(n=10, d0=d0)  # 6阵元的均匀线阵
 sources = FarField1DSourcePlacement(theta)  # 阵元位置（入射方位）
 pcs = PeriodicChirpSignal(dim=num_source, f0=f0, f1=f1, t1=t1,
                           s_period=s_period, fs=fs)  # chirp 信号
@@ -48,4 +50,5 @@ if resolved:
     print('Estimates: {0}'.format(estimates.locations))
     print('Ground truth: {0}'.format(sources.locations))
     plot_spectrum({'ISSM': np.abs(sp)}, grid, estimates=estimates,
-                        ground_truth=sources, use_log_scale=True)
+                        ground_truth=sources, use_log_scale=True,
+                        plot_in_deg=True)

@@ -119,7 +119,7 @@ class SpectrumBasedEstimatorBase(ABC):
             self._atom_matrix = matrix_a
         return matrix_a
 
-    def _spatial_spectrum(self, f_sp):
+    def _compute_spatial_spectrum(self, f_sp):
         """Compute spatial spectrum.
 
         Args:
@@ -176,7 +176,7 @@ class SpectrumBasedEstimatorBase(ABC):
                 specified search grid, consisting of values evaluated at the
                 grid points. Only present if `return_spectrum` is True.
         """
-        sp = self._spatial_spectrum(f_sp=f_sp)
+        sp = self._compute_spatial_spectrum(f_sp=f_sp)
 
         # Find peak locations.
         peak_indices = self._peak_finder(sp)

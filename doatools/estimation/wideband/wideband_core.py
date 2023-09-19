@@ -42,6 +42,33 @@ def divide_wideband_into_sub(signal, n_fft, fs, f_start, f_end):
     return signal_subs, freq_bins
 
 def get_estimates_from_sp(sp, k, search_grid, peak_finder, return_spectrum):
+    """Get DOA estimation from spatial spectrum.
+
+    Args:
+        sp (np.array): spatial spectrum.
+        k (int): number of sources.
+        return_spectrum (bool, optional): return spatial spectrum or not.
+            Defaults to True.
+
+    Returns:
+        A tuple with the following elements.
+
+        * resolved (:class:`bool`): A boolean indicating if the desired
+            number of sources are found. This flag does **not** guarantee that
+            the estimated source locations are correct. The estimated source
+            locations may be completely wrong!
+            If resolved is False, both ``estimates`` and ``spectrum`` will be
+            ``None``.
+        * estimates (:class:`~doatools.model.sources.SourcePlacement`):
+            A :class:`~doatools.model.sources.SourcePlacement` instance of the
+            same type as the one used in the search grid, represeting the
+            estimated source locations. Will be ``None`` if resolved is
+            ``False``.
+        * spectrum (:class:`~numpy.ndarray`): An numpy array of the same
+            shape of the specified search grid, consisting of values evaluated
+            at the grid points. Only present if ``return_spectrum`` is
+            ``True``.
+    """
     # Find peak locations.
     peak_indices = peak_finder(np.abs(sp))
     # The peak finder returns a tuple whose length is at least one. Hence
