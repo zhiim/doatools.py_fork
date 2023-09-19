@@ -12,9 +12,9 @@ from doatools.plotting import plot_spectrum
 
 theta = np.array([25, 50]) * (np.pi / 180)  # 入射信号的方位角
 num_source = len(theta)
-f0 = (6e6, 10e6)  # chirp 信号的起始频率
-f1 = (14e6, 14e6)  # chirp 信号的终止频率
-t1 = (1e-4, 1e-4)  # chirp 信号从f0变化到f1的时间间隔
+f0 = np.array([6e6, 10e6])  # chirp 信号的起始频率
+f1 = np.array([14e6, 14e6])  # chirp 信号的终止频率
+t1 = np.array([1e-4, 1e-4])  # chirp 信号从f0变化到f1的时间间隔
 
 snr = 0  # 信噪比
 s_period = max(t1)  # 采样时长

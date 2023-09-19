@@ -24,7 +24,7 @@ class ISSM(MUSIC):
                          **kwargs)
 
     def _spatial_spectrum(self, signal, fs, f_start, f_end, n_fft, k):
-        """Compute spatial spectrum."""
+        """Get spatial spectrum using ISSM"""
         # divide wideband signal into frequency points
         signal_subs, freq_bins = divide_wideband_into_sub(signal, n_fft, fs,
                                                           f_start, f_end)
@@ -49,7 +49,7 @@ class ISSM(MUSIC):
 
     def estimate(self, signal, fs, f_start, f_end, n_fft, k,
                  return_spectrum=True):
-        """Get DOA estimation using ISSM algorithm.
+        """Get DOA estimation using ISSM.
 
         Args:
             signal (np.array): sampled wideband signal.

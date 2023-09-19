@@ -5,6 +5,13 @@ from .wideband_core import divide_wideband_into_sub, get_estimates_from_sp
 C = 3e8  # wave speed
 
 class CSSM(MUSIC):
+    """Coherent Signal Subspace Method (CSSM) for wideband DOA estimation.
+
+    Args:
+        array (~doatools.model.arrays.ArrayDesign): Array design.
+        search_grid (~doatools.estimation.grid.SearchGrid): The search grid
+            used to locate the sources.
+    """
     def __init__(self, array, search_grid, **kwargs):
         wavelength = None
         super().__init__(array, wavelength, search_grid, enable_caching=False,
@@ -12,6 +19,7 @@ class CSSM(MUSIC):
 
     def _spatial_spectrum(self, signal, fs, f_start, f_end, pre_estimate,
                           n_fft, k):
+        """Get spatial spectrum using CSSM"""
         # 获取阵元位置，并将其转换为M*1维向量
         array_location = self._array.actual_element_locations.reshape((-1, 1))
         # reshape to a 1*N array
@@ -56,6 +64,39 @@ class CSSM(MUSIC):
 
     def estimate(self, signal, fs, f_start, f_end, pre_estimate, n_fft, k,
                  return_spectrum=True):
+        """Get DOA estimation using CSSM.
+
+        Args:
+            signal (np.array): sampled wideband signal.
+            fs (float): sampling frequency.
+            f_start (float): start frequency of wideband signal.
+            f_end (float): end frequency of wideband signal.
+            pre_estimate (np.array): a 1D array consists pre-estimate of DOA of
+                every incident signal.
+            n_fft (int): number of points of FFT.
+            k (int): number of sources.
+            return_spectrum (bool, optional): return spatial spectrum or not.
+                Defaults to True.
+
+        Returns:
+            A tuple with the following elements.
+
+            * resolved (:class:`bool`): A boolean indicating if the desired
+              number of sources are found. This flag does **not** guarantee that
+              the estimated source locations are correct. The estimated source
+              locations may be completely wrong!
+              If resolved is False, both ``estimates`` and ``spectrum`` will be
+              ``None``.
+            * estimates (:class:`~doatools.model.sources.SourcePlacement`):
+              A :class:`~doatools.model.sources.SourcePlacement` instance of the
+              same type as the one used in the search grid, represeting the
+              estimated source locations. Will be ``None`` if resolved is
+              ``False``.
+            * spectrum (:class:`~numpy.ndarray`): An numpy array of the same
+              shape of the specified search grid, consisting of values evaluated
+              at the grid points. Only present if ``return_spectrum`` is
+              ``True``.
+        """
         sp = self._spatial_spectrum(signal=signal, fs=fs, f_start=f_start,
                                     f_end=f_end, pre_estimate=pre_estimate,
                                     n_fft=n_fft, k=k)
