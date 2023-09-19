@@ -40,3 +40,39 @@ def divide_wideband_into_sub(signal, n_fft, fs, f_start, f_end):
             signal[:, group_i * n_fft: (group_i + 1) * n_fft])\
                                                 [:, f_start_index: f_end_index]
     return signal_subs, freq_bins
+
+def get_estimates_from_sp(sp, k, search_grid, peak_finder, return_spectrum):
+    # Find peak locations.
+    peak_indices = peak_finder(np.abs(sp))
+    # The peak finder returns a tuple whose length is at least one. Hence
+    # we can get the number of peaks by checking the length of the first
+    # element in the tuple.
+    n_peaks = len(peak_indices[0])
+
+    if n_peaks < k:
+        # Not enough peaks.
+        if return_spectrum:
+            return False, None, sp
+        else:
+            return False, None
+    else:
+        # Obtain the peak values for sorting. Remember that `peak_indices`
+        # is a tuple of 1D numpy arrays, and `sp` has been reshaped.
+        peak_values = sp[peak_indices]
+        # Identify the k largest peaks.
+        top_indices = np.argsort(peak_values)[-k:]
+        # Filter out the peak indices of the k largest peaks.
+        peak_indices = [axis[top_indices] for axis in peak_indices]
+        # Obtain the estimates.
+        # Note that we need to convert n-d indices to flattened indices.
+        # We sorted the flattened indices here to respect the ordering of
+        # source locations in the search grid.
+        flattened_indices = np.ravel_multi_index(peak_indices,
+                                                    search_grid.shape)
+        flattened_indices.sort()
+        estimates = search_grid.source_placement[flattened_indices]
+
+        if return_spectrum:
+            return True, estimates, sp
+        else:
+            return True, estimates

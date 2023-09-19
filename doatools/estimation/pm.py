@@ -34,7 +34,7 @@ def _compute_spectrum(grid_matrix_a, matrix_r, num_sources):
     ))
 
 class PM(SpectrumBasedEstimatorBase):
-    """PM algorithm used for DOA estimation
+    """Propagator Method (PM) algorithm used for DOA estimation
 
     Args:
         array (~doatools.model.arrays.ArrayDesign): Array design.

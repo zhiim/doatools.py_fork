@@ -1,5 +1,5 @@
 from ..music import MUSIC
-from .wideband_core import divide_wideband_into_sub
+from .wideband_core import divide_wideband_into_sub, get_estimates_from_sp
 import numpy as np
 
 class ISSM(MUSIC):
@@ -82,37 +82,6 @@ class ISSM(MUSIC):
         """
         sp = self._spatial_spectrum(signal, fs, f_start, f_end, n_fft, k)
 
-        # Find peak locations.
-        peak_indices = self._peak_finder(np.abs(sp))
-        # The peak finder returns a tuple whose length is at least one. Hence
-        # we can get the number of peaks by checking the length of the first
-        # element in the tuple.
-        n_peaks = len(peak_indices[0])
-
-        if n_peaks < k:
-            # Not enough peaks.
-            if return_spectrum:
-                return False, None, sp
-            else:
-                return False, None
-        else:
-            # Obtain the peak values for sorting. Remember that `peak_indices`
-            # is a tuple of 1D numpy arrays, and `sp` has been reshaped.
-            peak_values = sp[peak_indices]
-            # Identify the k largest peaks.
-            top_indices = np.argsort(peak_values)[-k:]
-            # Filter out the peak indices of the k largest peaks.
-            peak_indices = [axis[top_indices] for axis in peak_indices]
-            # Obtain the estimates.
-            # Note that we need to convert n-d indices to flattened indices.
-            # We sorted the flattened indices here to respect the ordering of
-            # source locations in the search grid.
-            flattened_indices = np.ravel_multi_index(peak_indices,
-                                                     self._search_grid.shape)
-            flattened_indices.sort()
-            estimates = self._search_grid.source_placement[flattened_indices]
-
-            if return_spectrum:
-                return True, estimates, sp
-            else:
-                return True, estimates
+        return get_estimates_from_sp(sp=sp, k=k, search_grid=self._search_grid,
+                                     peak_finder=self._peak_finder,
+                                     return_spectrum=return_spectrum)
