@@ -30,7 +30,7 @@ pre_estimate = np.array([-29.1, 39.6]) * (np.pi / 180)
 
 n_fft = 512  # issm算法 进行FFT的点数
 
-ula = UniformLinearArray(n=10, d0=d0)  # 6阵元的均匀线阵
+ula = UniformLinearArray(n=8, d0=d0)  # 6阵元的均匀线阵
 sources = FarField1DSourcePlacement(theta)  # 阵元位置（入射方位）
 pcs = PeriodicChirpSignal(dim=num_source, f0=f0, f1=f1, t1=t1,
                           s_period=s_period, fs=fs)  # chirp 信号
@@ -39,7 +39,7 @@ received = get_wideband_snapshots(array=ula, source=sources, source_signal=pcs,
                                   add_noise=True, snr=snr)
 
 grid = FarField1DSearchGrid()  # 算法计算空间谱的grid
-estimator = TOPS(array=ula, search_grid=grid)  # cssm 算法
+estimator = TOPS(array=ula, search_grid=grid)  # tops 算法
 
 resolved, estimates, sp = estimator.estimate(received, fs=fs, f_start=f_start,
                                               f_end=f_end,
