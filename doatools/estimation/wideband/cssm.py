@@ -21,15 +21,15 @@ class CSSM(MUSIC):
                           n_fft, k):
         """Get spatial spectrum using CSSM"""
         # 获取阵元位置，并将其转换为M*1维向量
-        array_location = self._array.actual_element_locations.reshape((-1, 1))
+        array_location = self._array.actual_element_locations
         # reshape to a 1*N array
-        pre_estimate = pre_estimate.reshape((1, -1))
+        pre_estimate = pre_estimate
 
         # 选取频带的中心频率作为参考频点
         f_reference = (f_start + f_end) / 2
         # 计算参考频点下，预估计角度对应的流型矩阵
         matrix_a_ref = np.exp(1j * 2 * np.pi * f_reference / C *\
-                              array_location @ np.sin(pre_estimate))
+                              np.outer(array_location, np.sin(pre_estimate)))
 
         # divide wideband signal into different frequency points
         signal_subs, freq_bins = divide_wideband_into_sub(signal=signal,
@@ -43,7 +43,7 @@ class CSSM(MUSIC):
         for i, freq in enumerate(freq_bins):
             # 每个频点下，角度预估值对应的流型矩阵
             matrix_a_f = np.exp(1j * 2 * np.pi * freq / C *\
-                                array_location @ np.sin(pre_estimate))
+                                np.outer(array_location, np.sin(pre_estimate)))
             matrix_q = matrix_a_f @ matrix_a_ref.conj().T
             # 对matrix_q进行奇异值分解
             matrix_u, _, matrix_vh = np.linalg.svd(matrix_q)

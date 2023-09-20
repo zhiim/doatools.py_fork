@@ -47,6 +47,19 @@ def get_noise_subspace(matrix_r, k):
     # Note: eigenvalues are sorted in ascending order.
     return matrix_e[:,:-k]
 
+def get_signal_subspace(matrix_r, k):
+    """
+    Gets the signal eigenvectors.
+
+    Args:
+        R: Covariance matrix.
+        k: Number of sources.
+    """
+    # a covariance matrix is always a hermitian matrix (even symmetric matrix)
+    _, matrix_e = np.linalg.eigh(matrix_r)
+    # Note: eigenvalues are sorted in ascending order.
+    return matrix_e[:,-k:]
+
 class SpectrumBasedEstimatorBase(ABC):
 
     def __init__(self, array, wavelength, search_grid,
