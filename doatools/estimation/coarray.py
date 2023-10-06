@@ -25,9 +25,9 @@ class CoarrayACMBuilder1D:
         self._array = array
         self._w = WeightFunction1D(array)
 
-    def __call__(self, R, method='ss'):
+    def __call__(self, matrix_r, method='ss'):
         """A shortcut to :meth:`transform`."""
-        return self.transform(R, method)
+        return self.transform(matrix_r, method)
 
     @property
     def input_size(self):

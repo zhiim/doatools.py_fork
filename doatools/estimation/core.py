@@ -259,8 +259,8 @@ class SpectrumBasedEstimatorBase(ABC):
             for i in range(len(subgrids)):
                 g = subgrids[i]
                 # Refine the i-th estimate.
-                A = self._get_atom_matrix(g)
-                sp = f_sp(A)
+                matrix_a = self._get_atom_matrix(g)
+                sp = f_sp(matrix_a)
                 i_max = sp.argmax() # argmax for the flattened spectrum.
                 # Update the initial estimates in-place.
                 locations[i] = g.source_placement[i_max]
