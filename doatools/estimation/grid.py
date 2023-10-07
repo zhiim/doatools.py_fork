@@ -393,15 +393,15 @@ class FarField2DSearchGrid(SearchGrid):
 class NearField2DSearchGrid(SearchGrid):
     """Creates a search grid for 2D near-field source localization.
 
-    The first dimension corresponds to the x coordinate, and the second
-    dimension corresponds to the y coordinate.
+    The first dimension corresponds to the spatial domain, and the second
+    dimension corresponds to the distance domain.
 
     Args:
-        start: A two-element list-like object containing the starting x and y
-            coordinates.
+        start: A two-element list-like object containing the start of angle and
+            distance.
 
-        stop: A two-element list-like object containing the stopping x and y
-            coordinates. These two coordinates are not included in the search
+        stop: A two-element list-like object containing the stop of  angle and
+            distance. These two grids are not included in the search
             grid.
 
         size: A scalar or a two-element list-like object specifying the size of
@@ -420,20 +420,20 @@ class NearField2DSearchGrid(SearchGrid):
     """
 
     def __init__(self, start=None, stop=None, size=None, axes=None):
-        axis_names = ('x', 'y')
+        axis_names = ('angle', 'distance')
         if axes is not None:
-            super().__init__(axes, axis_names, ('m', 'm'))
+            super().__init__(axes, axis_names, ('rad', 'm'))
         else:
             if np.isscalar(size):
                 size = (size, size)
             x = np.linspace(start[0], stop[0], size[0], False)
             y = np.linspace(start[1], stop[1], size[1], False)
-            super().__init__((x, y), axis_names, ('m', 'm'))
+            super().__init__((x, y), axis_names, ('rad', 'm'))
 
     def _create_source_placement(self):
         return NearField2DSourcePlacement(cartesian(*self._axes))
 
-    def create_refined_grids_at(self, coord, density=10, span=1):
+    def create_refined_grid_at(self, coord, density=10, span=1):
         """Creates a finer search grid for 2D near-field sources.
 
         Args:

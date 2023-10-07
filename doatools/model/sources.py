@@ -106,7 +106,6 @@ class SourcePlacement(ABC):
         unit."""
         raise NotImplementedError()
 
-    @abstractmethod
     def calc_spherical_coords(self, ref_locations):
         """Calculates the spherical coordinates relative to reference locations
         (reference locations are location of antenna elements in array).
@@ -496,7 +495,7 @@ class NearField2DSourcePlacement(SourcePlacement):
     Args:
         locations: An k x 2 numpy array representing the source locations,
             where k is the number of sources and the k-th row consists of
-            the x and y coordinates of the k-th source. Should never be
+            distance and the incidence angle of the k-th source. Should never be
             modified after creation.
     """
 
@@ -505,7 +504,7 @@ class NearField2DSourcePlacement(SourcePlacement):
             locations = np.array(locations)
         if locations.ndim != 2 or locations.shape[1] != 2:
             raise ValueError('Expecting an K x 2 numpy array.')
-        super().__init__(locations, ('m', 'm'))
+        super().__init__(locations, ('rad', 'm'))
 
     @property
     def is_far_field(self):
@@ -528,7 +527,14 @@ class NearField2DSourcePlacement(SourcePlacement):
             tuple: A two-element tuple containing padded sources locations and
             sensor locations.
         """
-        source_locations = self._locations
+        source_locations = self._locations.copy()
+        source_distance = source_locations[:, 0].copy()  # distance
+        source_angle = source_locations[:, 1].copy()  # incidence angle
+
+        # 将信源位置由极坐标转换为直角坐标
+        source_locations[:, 0] = source_distance * np.cos(source_angle) # x 轴
+        source_locations[:, 1] = source_distance * np.sin(source_angle) # y 轴
+
         if sensor_locations.shape[1] < 2:
             # 1D arrays
             sensor_locations = np.pad(sensor_locations, ((0, 0), (0, 1)),
@@ -538,19 +544,6 @@ class NearField2DSourcePlacement(SourcePlacement):
             source_locations = np.pad(source_locations, ((0, 0), (0, 1)),
                                       'constant')
         return source_locations, sensor_locations
-
-    def calc_spherical_coords(self, ref_locations):
-        source_locations, ref_locations =\
-            self._align_location_dims(ref_locations)
-        m = ref_locations.shape[0]
-        k, d = source_locations.shape
-        # Compute pair-wise differences.
-        diffs = source_locations.reshape((1, k, d)) -\
-            ref_locations.reshape((m, 1, d))
-        diffs = diffs.reshape((-1, d))
-        s = cart2spherical(diffs)
-        return s[:, 0].reshape((m, k)), s[:, 1].reshape((m, k)),\
-              s[:, 2].reshape((m, k))
 
     def phase_delay_matrix(self, sensor_locations, wavelength,
                            derivatives=False):
@@ -565,8 +558,9 @@ class NearField2DSourcePlacement(SourcePlacement):
             self._align_location_dims(sensor_locations)
 
         # Negative phase = arrive later
-        s = - 2 * np.pi / wavelength
+        s = -2 * np.pi / wavelength
         # Compute the pair-wise Euclidean distance.
-        M = cdist(sensor_locations, source_locations, 'euclidean')
-        M -= M[0, :].copy() # Use the first sensor as the reference sensor.
-        return s * M
+        distances = cdist(sensor_locations, source_locations, 'euclidean')
+        # Use the first sensor as the reference sensor.
+        distances -= distances[0, :].copy()
+        return s * distances
