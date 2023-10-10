@@ -210,7 +210,8 @@ def plot_spectrum_2d(sp, grid, ax, estimates=None, ground_truth=None,
         if use_log_scale:
             plot_args['norm'] = LogNorm()
         x, y = np.meshgrid(x, y)
-        containers.append(ax.plot_surface(x, y, sp, **plot_args))
+        containers.append(ax.plot_surface(x, y, sp, rstride=1, cstride=1,
+                                          antialiased=False, **plot_args))
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
 

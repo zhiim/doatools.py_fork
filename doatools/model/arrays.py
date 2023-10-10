@@ -590,6 +590,7 @@ class UniformLinearArray(GridBasedArrayDesign):
         if name is None:
             name = 'ULA ' + str(n)
         super().__init__(np.arange(n).reshape((-1, 1)), d0, name, **kwargs)
+        super().__init__(np.arange(-(n // 2), n // 2 + 1).reshape((-1, 1)), d0, name, **kwargs)
 
 
 ## without reviews

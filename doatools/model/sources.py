@@ -532,8 +532,8 @@ class NearField2DSourcePlacement(SourcePlacement):
         source_angle = source_locations[:, 1].copy()  # incidence angle
 
         # 将信源位置由极坐标转换为直角坐标
-        source_locations[:, 0] = source_distance * np.cos(source_angle) # x 轴
-        source_locations[:, 1] = source_distance * np.sin(source_angle) # y 轴
+        source_locations[:, 0] = source_distance * np.sin(source_angle) # x 轴
+        source_locations[:, 1] = source_distance * np.cos(source_angle) # y 轴
 
         if sensor_locations.shape[1] < 2:
             # 1D arrays
@@ -558,9 +558,9 @@ class NearField2DSourcePlacement(SourcePlacement):
             self._align_location_dims(sensor_locations)
 
         # Negative phase = arrive later
-        s = -2 * np.pi / wavelength
+        s = 2 * np.pi / wavelength
         # Compute the pair-wise Euclidean distance.
         distances = cdist(sensor_locations, source_locations, 'euclidean')
         # Use the first sensor as the reference sensor.
-        distances -= distances[0, :].copy()
+        distances -= distances[4, :].copy()
         return s * distances
