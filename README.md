@@ -1,10 +1,8 @@
 ## What is added
 
 * some bugs fixed
-
 * narrowband DOA estimation  
     * Propagator Method (PM) algorithm  
-    
 * wideband DOA estimation  
     * ISSM algorithm  
     * CSSM algorithm
