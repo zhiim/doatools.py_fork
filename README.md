@@ -1,3 +1,15 @@
+## What is added
+
+* some bugs fixed
+
+* narrowband DOA estimation  
+    * Propagator Method (PM) algorithm  
+    
+* wideband DOA estimation  
+    * ISSM algorithm  
+    * CSSM algorithm
+    * TOPS algorithm
+
 # doatools.py
 
 **doatools.py** is the Python version of my [doa-tools](https://github.com/morriswmz/doa-tools) in MATLAB. It provides basic tools for theoretical research on direction-of-arrival (DOA) estimation, including basic array designs, various DOA estimators, plus tools to compute performance bounds. The MATLAB version served as a small toolbox for [my research](http://research.wmz.ninja/research.html) related to array signal processing. I made this Python version because I will no longer have access to MATLAB.
@@ -42,9 +54,3 @@ The source code is released under the [MIT](LICENSE.md) license.
 
 If you find my code helpful. You are welcomed to cite my papers [here](http://research.wmz.ninja/research.html).
 
-## What is added
-
-* general DOA estimation  
-    Propagator Method (PM) algorithm  
-* wideband DOA estimation  
-    ISSM algorithm  
