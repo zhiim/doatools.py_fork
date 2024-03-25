@@ -1,4 +1,8 @@
-## What is added
+# New Project: [classical_doa: Classical DOA etimation algorithms implemented in Python](https://github.com/zhiim/classical_doa)
+
+`doatool.py` is a good project, however, the provided features and code structure are too complex, so it's hard to maintain. So, I created a new project, `classical_doa`, which has a simpler and easier-to-understand code structure.
+
+# What is added
 
 * some bugs fixed
 * narrowband DOA estimation  
