@@ -1,4 +1,4 @@
-# New Project: [DOA_py: DOA etimation algorithms implemented in Python](https://github.com/zhiim/classical_doa)
+# New Project: [DOA_py: DOA etimation algorithms implemented in Python](https://github.com/zhiim/doa_py)
 
 `doatool.py` is a good project, however, the provided features and code structure are too complex, so it's hard to maintain. So, I created a new project, `classical_doa`, which has a simpler and easier-to-understand code structure.
 
